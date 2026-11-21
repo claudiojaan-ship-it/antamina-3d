@@ -1,0 +1,1596 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Antamina 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Barra superior con pestañas y barra de corte; en 3D, lienzo grande + panel de capas a la derecha (abajo en teléfono). */
+:root{
+  --bg:#eef1f3; --panel:#ffffff; --ink:#1b2530; --muted:#5b6977; --line:#d5dce2;
+  --accent:#b5523b; --accent-2:#2f6f9f; --cut:#d50000;
+  --warn:#9a6a00; --warn-bg:#fff6dd; --ok:#2e7d32; --ok-bg:#e7f4e8; --hip:#6a4c93; --hip-bg:#efe9f7;
+  --canvas:#dfe5ea;
+  --f-head:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --panel:#1a2129; --ink:#e3e8ec; --muted:#93a1ae; --line:#2c3640;
+  --accent:#e0795f; --accent-2:#7fb0d8; --cut:#ff5252; --warn:#f0c15a; --warn-bg:#2e2715; --ok:#7cc47f; --ok-bg:#17281a; --hip:#c3a6ec; --hip-bg:#2a2238;
+  --canvas:#0e1318; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --panel:#1a2129; --ink:#e3e8ec; --muted:#93a1ae; --line:#2c3640;
+  --accent:#e0795f; --accent-2:#7fb0d8; --cut:#ff5252; --warn:#f0c15a; --warn-bg:#2e2715; --ok:#7cc47f; --ok-bg:#17281a; --hip:#c3a6ec; --hip-bg:#2a2238;
+  --canvas:#0e1318; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;display:flex;flex-direction:column}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;padding-block:9px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);background:var(--panel)}
+.marca{display:flex;flex-direction:column;min-width:0}
+.marca h1{font-family:var(--f-head);font-size:20px;font-weight:700;margin:0;letter-spacing:.01em;text-wrap:balance}
+.marca span{font-size:12px;color:var(--muted)}
+nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto;align-items:center}
+nav button,.btn{font:600 13px var(--f-head);letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--line);background:transparent;color:var(--ink);padding:7px 12px;border-radius:6px;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.btn.prim{border-color:var(--accent);color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* barra del corte */
+#barraCorte{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding-block:7px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:color-mix(in srgb,var(--cut) 6%,var(--panel));border-bottom:1px solid var(--line);font-size:13px}
+#barraCorte[hidden]{display:none}
+#barraCorte b{font:700 13px var(--f-head);letter-spacing:.06em;text-transform:uppercase;color:var(--cut)}
+#barraCorte label{display:flex;align-items:center;gap:6px;cursor:pointer}
+#barraCorte input[type=range]{width:min(220px,40vw)}
+#barraCorte output{font:500 12.5px var(--f-mono);min-width:7ch;font-variant-numeric:tabular-nums}
+main{flex:1;min-height:0;display:flex}
+.vista{flex:1;min-height:0;display:flex}
+.vista[hidden]{display:none!important}
+#lienzo3d{flex:1;min-width:0;position:relative;background:var(--canvas);overflow:hidden}
+#lienzo3d canvas{display:block;width:100%;height:100%;touch-action:none}
+.sobre{position:absolute;background:color-mix(in srgb,var(--panel) 90%,transparent);border:1px solid var(--line);border-radius:6px;font-size:12px}
+/* panel de exposición: fuera del lienzo (columna derecha); en pantallas pequeñas, bandeja plegable bajo el modelo */
+#expo{display:none}
+aside.modo-expo>*:not(#expo){display:none!important}
+aside.modo-expo #expo{display:block}
+#expo>summary{cursor:pointer;font:600 12px var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:2px 0 6px}
+#expo h3.tt{font:700 20px var(--f-head);margin:2px 0 8px;letter-spacing:.01em;text-wrap:balance}
+.etapas{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.etapas button{font:600 12.5px var(--f-head);letter-spacing:.03em;padding:7px 10px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.etapas button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+#expoX{font-size:14.5px;line-height:1.55;margin:0 0 10px}
+#expoExtra:empty{display:none}
+#expoExtra{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.minerales{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px}
+.minerales div{border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--bg)}
+.minerales b{display:block;font:600 11px var(--f-head);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.doms{display:flex;flex-wrap:wrap;gap:5px}
+.doms button{font:500 12px var(--f-body);padding:5px 8px;border-radius:5px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;display:flex;gap:5px;align-items:center}
+.doms button[aria-pressed="true"]{outline:2px solid var(--accent)}
+.etqIl{font:500 10.5px var(--f-mono);background:var(--warn-bg);color:var(--warn);padding:1px 5px;border-radius:3px}
+#expo canvas{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:6px;margin-top:6px;background:var(--panel)}
+#expo canvas[hidden]{display:none}
+.respuesta{border-left:3px solid var(--ok);background:var(--ok-bg);padding:7px 9px;border-radius:0 5px 5px 0;font-size:13.5px}
+.respuesta.mal{border-color:var(--warn);background:var(--warn-bg)}
+.expoNav{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+#mFluidos{background:#bfe9ff;color:#0b3a52}
+.modos{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;width:max-content;max-width:100%}
+.modos button{font:600 12px var(--f-head);letter-spacing:.03em;padding:6px 10px;border:0;border-right:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.modos button:last-child{border-right:0}
+.modos button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+#rotulo .fila{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12px}
+#rotulo .fila label{display:flex;gap:4px;align-items:center;cursor:pointer}
+#panelCu{left:12px;bottom:52px;padding:8px 10px;width:min(300px,calc(100% - 24px));font-size:12px}
+#panelCu[hidden]{display:none}
+#panelCu b{font:700 13px var(--f-head);display:block;margin-bottom:4px}
+#panelCu .escCu{display:flex;height:12px;border-radius:3px;overflow:hidden;margin:2px 0}
+#panelCu .escCu i{flex:1}
+#panelCu .tics{display:flex;justify-content:space-between;font:500 10.5px var(--f-mono);color:var(--muted)}
+#panelCu input[type=range]{width:100%}
+#divisor{position:absolute;top:0;bottom:0;width:3px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.35);cursor:ew-resize;display:none;transform:translateX(-50%);z-index:3}
+#divisor::after{content:"⇆";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#111;border-radius:50%;width:30px;height:30px;display:grid;place-items:center;font:700 15px var(--f-head);box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.etqComp{position:absolute;top:12px;display:none;z-index:2;padding:4px 6px;font-size:12px}
+.etqComp select{font:600 12px var(--f-head);padding:3px 5px;border-radius:4px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+#rotulo{left:12px;top:12px;padding:8px 10px;max-width:calc(100% - 90px);display:flex;flex-direction:column;gap:7px}
+#rotulo b{font:700 15px var(--f-head);letter-spacing:.02em}
+@media (max-width:820px){#rotulo{padding:6px 8px;gap:5px}#rotulo b{font-size:13px}#rotulo .acc button{padding:5px 7px;font-size:11px}}
+#rotulo .acc{display:flex;flex-wrap:wrap;gap:6px}
+#rotulo .acc button{font:600 12px var(--f-head);letter-spacing:.04em;text-transform:uppercase;padding:6px 9px;border-radius:5px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+#rotulo .acc button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+#rotulo .acc button[hidden]{display:none}
+#tour{left:50%;bottom:14px;transform:translateX(-50%);width:min(560px,calc(100% - 24px));padding:12px 14px;display:none}
+#tour.on{display:block}
+#tour h4{margin:0 0 4px;font:700 15px var(--f-head);letter-spacing:.02em}
+#tour p{margin:0 0 8px;font-size:13px;line-height:1.45}
+#tour .pie{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+#tour .pie button{font:600 12px var(--f-head);text-transform:uppercase;letter-spacing:.04em;padding:6px 10px;border-radius:5px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+#tour .pie .der{margin-left:auto;display:flex;gap:6px}
+.marcaR{position:absolute;font:700 13px var(--f-head);color:#3b2f22;background:#ffcf5a;padding:1px 6px;border-radius:4px;transform:translate(-50%,-100%);pointer-events:none;white-space:nowrap;display:none}
+#escala{left:12px;bottom:12px;padding:5px 9px;font:500 11.5px var(--f-mono);color:var(--ink)}
+#escala i{display:block;height:7px;border:2px solid var(--ink);border-top:0;margin-bottom:3px;width:100px}
+#leyPanel summary{cursor:pointer;font:600 12px var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+#leyCont h4{margin:6px 0 2px;font:600 11px var(--f-head);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+#leyCont .it{display:flex;align-items:center;gap:6px;padding:1px 0;font-size:12.5px}
+#leyCont .pie{margin-top:6px;color:var(--muted);font-size:11.5px}
+.encuadres{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.encuadres button{font:600 13px var(--f-head);letter-spacing:.04em;text-transform:uppercase;padding:9px 6px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.encuadres button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+#ayuda{right:12px;bottom:12px;padding:5px 9px;color:var(--muted);max-width:260px}
+.brujula{position:absolute;right:12px;top:12px;width:44px;height:44px;border-radius:50%;background:color-mix(in srgb,var(--panel) 85%,transparent);border:1px solid var(--line);display:grid;place-items:center;font:700 12px var(--f-head)}
+.brujula i{position:absolute;width:2px;height:16px;background:var(--accent);top:6px;left:21px;transform-origin:1px 16px}
+.marcaA{position:absolute;font:700 16px var(--f-head);color:#fff;background:var(--cut);padding:1px 7px;border-radius:4px;transform:translate(-50%,-100%);pointer-events:none;white-space:nowrap}
+aside{width:340px;flex:none;overflow:auto;background:var(--panel);border-left:1px solid var(--line);padding:14px 16px;display:flex;flex-direction:column;gap:14px}
+.grupo h3{font:600 12px var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 4px;display:flex;align-items:center;justify-content:space-between}
+.grupo h3 label{font:500 12px var(--f-body);letter-spacing:0;text-transform:none;display:flex;gap:4px;align-items:center;cursor:pointer}
+.capa{display:grid;grid-template-columns:1fr auto 64px;align-items:center;gap:6px;padding:2px 0;font-size:13px}
+.capa label{display:flex;align-items:center;gap:7px;cursor:pointer;min-width:0}
+.capa label span.n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.capa input[type=checkbox]{margin:0}
+.capa input[type=range]{width:64px}
+.capa.sel{background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:4px}
+.sw{width:14px;height:14px;border-radius:3px;flex:none;border:1px solid rgba(0,0,0,.25);display:inline-block}
+.etq{font:500 10px var(--f-mono);padding:1px 5px;border-radius:3px;white-space:nowrap}
+.etq.f{background:var(--ok-bg);color:var(--ok)} .etq.i{background:color-mix(in srgb,var(--accent-2) 16%,transparent);color:var(--accent-2)} .etq.s{background:var(--warn-bg);color:var(--warn)} .etq.h{background:var(--hip-bg);color:var(--hip)}
+.ctl{display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap}
+.botones{display:flex;gap:6px;flex-wrap:wrap}
+.botones button{font:500 12px var(--f-body);border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:5px 9px;border-radius:5px;cursor:pointer}
+.info{font-size:12.5px;border:1px solid var(--line);border-radius:6px;padding:10px;background:var(--bg)}
+.info b.t{font-family:var(--f-head);font-size:15px;display:block}
+.info dl{display:grid;grid-template-columns:88px 1fr;gap:4px 8px;margin:8px 0 0}
+.info dt{color:var(--muted)} .info dd{margin:0;min-width:0}
+.info .resp{margin-top:8px;padding:6px 8px;border-left:3px solid var(--ok);background:var(--ok-bg);border-radius:0 4px 4px 0}
+.info .interp{margin-top:6px;padding:6px 8px;border-left:3px solid var(--accent-2);background:color-mix(in srgb,var(--accent-2) 10%,transparent);border-radius:0 4px 4px 0}
+.info .sint{margin-top:6px;padding:6px 8px;border-left:3px solid var(--warn);background:var(--warn-bg);border-radius:0 4px 4px 0}
+.estado{float:right;margin-left:8px}
+/* sección y planta */
+.hoja{flex:1;min-width:0;overflow:auto;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:10px}
+.barra{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:13px}
+.barra label{display:flex;gap:5px;align-items:center;cursor:pointer}
+.barra select{font:inherit;padding:4px 6px;border-radius:5px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.lamina{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px;overflow-x:auto}
+.lamina canvas{display:block;width:100%;height:auto}
+#cSec{min-width:640px;cursor:crosshair}
+.dos{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:12px;align-items:start}
+.dos .lado{display:flex;flex-direction:column;gap:10px}
+.leyenda{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted)}
+.leyenda span{display:flex;align-items:center;gap:5px}
+.leyenda i.ln{width:22px;height:0;border-top:3px solid;display:inline-block}
+.nota{font-size:12.5px;color:var(--muted);max-width:90ch;margin:0}
+/* ficha */
+.ficha{max-width:1100px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.ficha h2{font:700 22px var(--f-head);margin:0;text-wrap:balance}
+.ficha h3{font:600 16px var(--f-head);margin:0 0 8px}
+.ficha p{margin:0;max-width:78ch}
+.tabla{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11px var(--f-head);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--bg)}
+td.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.prev{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.prev figure{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.prev img{display:block;width:100%}
+.prev figcaption{font-size:12px;color:var(--muted);padding:6px 10px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+.prev figcaption .btn{font-size:11.5px;padding:5px 9px;white-space:nowrap}
+.cargando{position:absolute;inset:0;display:grid;place-items:center;font:600 14px var(--f-head);letter-spacing:.06em;color:var(--muted)}
+#aviso{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:7px 14px;border-radius:6px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9;max-width:calc(100% - 32px)}
+#aviso.on{opacity:1}
+@media (max-width:980px){.dos{grid-template-columns:1fr}}
+@media (max-width:820px){
+  main{overflow:auto} #v3d{flex-direction:column} #lienzo3d{min-height:62vh}
+  aside{width:auto;border-left:0;border-top:1px solid var(--line);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  nav{margin-left:0} #ayuda{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ===================== v8: diseño para proyectar ===================== */
+:root{--acc:#c9771f;--acc-ink:#fff;--canvas:#1e2327;--f-head:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--acc:#e39a3e;--acc-ink:#1a1206;--canvas:#1b1f23;--bg:#15191d;--panel:#1d2227;--line:#2b3238}}
+:root[data-theme="dark"]{--acc:#e39a3e;--acc-ink:#1a1206;--canvas:#1b1f23;--bg:#15191d;--panel:#1d2227;--line:#2b3238}
+:root{--accent:var(--acc)}
+body{font-family:var(--f-body)}
+#cab{padding-block:8px;gap:6px 18px}
+#cab .marca h1{font:600 19px var(--f-body);letter-spacing:0;text-transform:none}
+#cab .marca span{font-size:12.5px}
+nav button,.btn,.encuadres button,#tour .pie button,.etapas button,.modos button,.expoNav .btn{text-transform:none!important;letter-spacing:0!important;font-family:var(--f-body)!important;font-weight:500!important}
+nav button{border:0;background:transparent;padding:6px 10px;border-radius:5px;color:var(--muted)}
+nav button[aria-selected="true"]{background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
+.cabAcc{display:flex;gap:6px;margin-left:auto}
+nav{margin-left:auto}
+.btn{font-size:13px;padding:6px 12px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink)}
+.btn.prim{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.btn[aria-pressed="true"]{background:color-mix(in srgb,var(--acc) 22%,transparent);border-color:var(--acc)}
+#barraHerr{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:7px max(16px,env(safe-area-inset-left,0px));background:var(--panel);border-bottom:1px solid var(--line)}
+#barraHerr[hidden]{display:none}
+.modos{border-radius:6px}
+.modos button{font-size:13px;padding:6px 12px}
+.modos button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.etqSint{font:500 12px var(--f-mono);color:var(--warn);background:var(--warn-bg);padding:4px 8px;border-radius:4px}
+.mas{position:relative;margin-left:auto}
+.mas>summary{list-style:none;cursor:pointer}
+.mas>summary::-webkit-details-marker{display:none}
+.mas .menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;width:min(340px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:8px}
+.mas .menu h4{margin:4px 0 0;font:600 12px var(--f-body);color:var(--muted)}
+.mas .fila{display:flex;gap:12px;font-size:13px}
+#barraCorte{background:var(--bg);padding-block:5px;font-size:12.5px}
+#barraCorte b{font:600 12.5px var(--f-body);letter-spacing:0;text-transform:none;color:var(--ink)}
+#lienzo3d{background:var(--canvas)}
+aside#panel{width:clamp(290px,25vw,390px);padding:10px 14px;gap:4px;background:var(--panel)}
+body.sin-panel aside#panel{display:none}
+aside#panel details.sec{border-top:1px solid var(--line);padding:8px 0}
+aside#panel details.sec>summary,#expo>summary{cursor:pointer;font:600 13.5px var(--f-body);letter-spacing:0;text-transform:none;color:var(--ink);padding:2px 0 6px}
+aside.modo-expo>*:not(#expo):not(#leyPanel){display:none!important}
+aside#panel.modo-expo>details#leyPanel{display:block!important}
+#leyCont h4{font:600 12px var(--f-body);letter-spacing:0;text-transform:none;color:var(--muted);margin:8px 0 3px}
+#leyCont .it{font-size:13px}
+#panelCu{position:static;width:auto;padding:0;border:0;background:none;margin-top:4px}
+#panelCu[hidden]{display:none}
+.info{background:transparent;border:0;padding:0}
+.ayuda{margin-top:auto;font-size:11.5px}
+.sobre{border-color:transparent;background:color-mix(in srgb,var(--panel) 80%,transparent)}
+#escala{background:transparent;color:#d8dde1}
+#escala i{border-color:#d8dde1}
+.brujula{background:color-mix(in srgb,#000 30%,transparent);border-color:transparent;color:#eef2f4}
+.grupo h3{text-transform:none;letter-spacing:0;font:600 13px var(--f-body);color:var(--ink)}
+.capa{font-size:12.5px}
+/* presentación: visor ampliado, solo recorrido, leyenda activa y salida */
+body.presentacion #cab nav,body.presentacion #cab .marca span,body.presentacion #barraCorte,body.presentacion #b-panel,body.presentacion #b-inicio,body.presentacion .mas,body.presentacion #b-tour{display:none!important}
+body.presentacion #cab{padding-block:6px}
+body.presentacion aside#panel{width:clamp(280px,22vw,340px)}
+body.presentacion #b-present{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+@media (max-width:820px){aside#panel{width:auto} .mas{margin-left:0} .cabAcc{margin-left:0} #cab nav{margin-left:0}}
+</style>
+
+<header id="cab">
+  <div class="marca"><h1>Antamina</h1><span>Modelo geológico conceptual · Áncash, Perú</span></div>
+  <nav role="tablist" aria-label="Vistas">
+    <button role="tab" id="t-3d" aria-selected="true" data-v="v3d">3D</button>
+    <button role="tab" id="t-pla" aria-selected="false" data-v="vpla">Planta</button>
+    <button role="tab" id="t-sec" aria-selected="false" data-v="vsec">Sección</button>
+    <button role="tab" id="t-fic" aria-selected="false" data-v="vfic">Ficha y fuentes</button>
+  </nav>
+  <div class="cabAcc"><button class="btn" id="b-inicio" title="Cámara, corte y capas como al abrir">Vista inicial</button><button class="btn" id="b-present" aria-pressed="false">Presentación</button><button class="btn" id="b-panel" aria-pressed="true" title="Mostrar u ocultar el panel lateral">Panel</button></div>
+</header>
+<div id="barraHerr">
+  <div class="modos" role="group" aria-label="Lectura del modelo"><button data-modo="lit" aria-pressed="true">Litologías</button><button data-modo="dom" aria-pressed="false">Dominios mineralizados</button><button data-modo="cu" aria-pressed="false">Ley de Cu sintética</button></div>
+  <button class="btn prim" id="b-revelar">Revelar subsuelo</button><button class="btn" id="b-pausa" hidden>Pausa</button>
+  <button class="btn" id="b-tour">Recorrido guiado</button>
+  <span class="etqSint" id="etqSint" hidden>Ley de Cu sintética · no es dato de Antamina</span>
+  <details class="mas" id="mas"><summary class="btn">Más opciones</summary>
+    <div class="menu">
+      <h4>Cámara</h4>
+      <div class="encuadres"><button id="b-tajo" aria-pressed="true">Tajo completo</button><button id="b-geo" aria-pressed="false">Geología en corte</button></div>
+      <div class="botones"><button id="b-iso">Bloque completo</button><button id="b-frente">Frente al corte</button><button id="b-pla">Desde arriba</button><button id="b-lupa">Acercar al contacto</button><button id="b-volver" hidden>Volver al encuadre anterior</button></div>
+      <h4>Herramientas</h4>
+      <div class="botones"><button id="b-rampa" aria-pressed="false">Resaltar rampa</button><button id="b-comp" aria-pressed="false">Comparar lecturas</button></div>
+      <div class="fila"><label><input type="checkbox" id="qFal"> Fallas</label><label><input type="checkbox" id="qSon"> Sondajes (sintéticos)</label></div>
+      <h4>Exportar</h4>
+      <div class="botones"><button id="b-glb">Modelo 3D (GLB)</button></div>
+    </div></details>
+</div>
+<div id="barraCorte">
+  <b>Corte A–A′</b>
+  <label><input type="checkbox" id="cOn" checked> Recortar el bloque</label>
+  <label>Desplazamiento <input type="range" id="cOff" min="-1400" max="1400" step="10" value="0"><output id="oOff">0 m</output></label>
+  <label>Orientación <input type="range" id="cAz" min="0" max="179" step="1" value="90"><output id="oAz">N090°</output></label>
+  <span class="nota" id="cInfo"></span>
+</div>
+<main>
+  <section class="vista" id="v3d">
+    <div id="lienzo3d"><div class="cargando" id="carga">Cargando modelo…</div>
+      <div class="brujula" title="Norte"><i id="flechaN"></i>N</div>
+      <div class="marcaA" id="mA">A</div><div class="marcaA" id="mAp">A′</div>
+      <div id="divisor" role="slider" aria-label="Divisor de la comparación" tabindex="0"></div>
+      <div class="sobre etqComp" id="compIzq"><select id="selIzq" aria-label="Vista izquierda"><option value="lit">Litologías</option><option value="dom">Dominios</option><option value="cu">Ley de Cu sintética</option></select></div>
+      <div class="sobre etqComp" id="compDer"><select id="selDer" aria-label="Vista derecha"><option value="lit">Litologías</option><option value="dom" selected>Dominios</option><option value="cu">Ley de Cu sintética</option></select></div>
+      <div class="sobre" id="escala" title="Escala aproximada en el centro de la vista"><i></i><span></span></div>
+      <div class="sobre" id="tour" hidden><h4 id="tourT"></h4><p id="tourX"></p><div class="pie"><span id="tourN"></span><div class="der"><button id="tourAnt">Anterior</button><button id="tourSig">Siguiente</button><button id="tourSal">Explorar libremente</button></div></div></div>
+      <div class="marcaR" id="mFluidos">Flechas esquemáticas: fluidos (ilustrativo)</div><div class="marcaR" id="mAcceso">Acceso a la rampa</div><div class="marcaR" id="mFondo">Fondo del tajo</div>
+    </div>
+    <aside id="panel">
+      <details id="expo" open><summary>Recorrido guiado · <span id="expoN"></span></summary>
+        <h3 class="tt" id="expoT"></h3>
+        <div class="etapas" id="expoEtapas"></div>
+        <p id="expoX"></p>
+        <div id="expoExtra"></div>
+        <canvas id="expoPla" width="600" height="600" hidden aria-label="Planta con la traza de la falla"></canvas>
+        <canvas id="expoSec" width="1100" height="520" hidden aria-label="Perfil A–A′ con la intersección de la falla"></canvas>
+        <p class="nota" id="expoF"></p>
+        <div class="expoNav"><button class="btn" id="expoAnt">Anterior</button><button class="btn prim" id="expoSig">Siguiente</button><button class="btn" id="expoLibre">Explorar libremente</button></div>
+      </details>
+      <details class="sec" id="leyPanel" open><summary>Leyenda</summary><div id="leyCont"></div>
+        <div id="panelCu" hidden><div class="escCu" id="escCu"></div><div class="tics"><span>0,2</span><span>0,3</span><span>0,5</span><span>0,7</span><span>1,0</span><span>% Cu</span></div>
+          <label class="nota" style="display:block;margin-top:8px">Filtro de visualización: <output id="oCu">0,20–3,00 % Cu</output></label>
+          <input type="range" id="cuMin" min="0.2" max="3" step="0.05" value="0.2" aria-label="Ley mínima mostrada"><input type="range" id="cuMax" min="0.2" max="3" step="0.05" value="3" aria-label="Ley máxima mostrada"></div>
+      </details>
+      <details class="sec" id="secFicha" open><summary>Unidad seleccionada</summary><div class="info" id="info"><p class="nota">Haz clic sobre una unidad, una falla o la cara del corte.</p></div></details>
+      <details class="sec" id="secCapas"><summary>Capas y opacidad</summary><div id="capas"></div></details>
+      <p class="nota ayuda">Arrastra para girar · rueda para acercar · clic derecho para desplazar</p>
+    </aside>
+  </section>
+
+  <section class="vista" id="vpla" hidden>
+    <div class="hoja">
+      <div class="barra">
+        <label>Relleno <select id="plaModo"><option value="lit">Geología en la superficie actual</option><option value="dom">Dominios en la superficie</option></select></label>
+        <label><input type="checkbox" id="pCur" checked> Curvas cada 50 m</label>
+        <label><input type="checkbox" id="pRam" checked> Rampa</label>
+        <label><input type="checkbox" id="pInt" checked> Intrusivo a 3900 m</label>
+        <label><input type="checkbox" id="pFal" checked> Fallas a 4300 m</label>
+        <label><input type="checkbox" id="pSon" checked> Collares</label>
+      </div>
+      <div class="lamina" style="max-width:860px"><canvas id="cPla" width="1000" height="1000"></canvas></div>
+      <div class="leyenda" id="leyPla"></div>
+    </div>
+  </section>
+
+  <section class="vista" id="vsec" hidden>
+    <div class="hoja">
+      <div class="barra">
+        <label>Relleno <select id="secModo">
+          <option value="lit">Litología</option><option value="zon">Zonación del exoskarn</option>
+          <option value="dom">Dominios mineralizados</option><option value="cu">Ley de Cu (SINTÉTICA)</option></select></label>
+        <label><input type="checkbox" id="sLit" checked> Contactos</label>
+        <label><input type="checkbox" id="sDom" checked> Límites de dominios</label>
+        <label><input type="checkbox" id="sFal" checked> Fallas</label>
+        <label><input type="checkbox" id="sSon" checked> Sondajes (±80 m)</label>
+        <label><input type="checkbox" id="sTaj" checked> Tajo, rampa y topografía</label>
+        <button class="btn" id="b-png">Exportar PNG</button>
+      </div>
+      <div class="dos">
+        <div class="lamina"><canvas id="cSec" width="1500" height="780"></canvas></div>
+        <div class="lado">
+          <div class="lamina"><canvas id="cMini" width="600" height="600"></canvas></div>
+          <div class="info" id="infoSec"><b class="t">Ficha de la unidad</b><p class="nota">Haz clic sobre el perfil.</p></div>
+        </div>
+      </div>
+      <div class="leyenda" id="leySec"></div>
+      <p class="nota" id="notaSec"></p>
+    </div>
+  </section>
+
+  <section class="vista" id="vfic" hidden>
+    <div class="hoja"><div class="ficha" id="ficha"></div></div>
+  </section>
+</main>
+<div id="aviso" role="status"></div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script>
+"use strict";
+/* =====================================================================================
+   DATOS EDITABLES DEL VISOR
+   - INICIO: estado al abrir (cámara, corte, capas). La geometría se edita en parametros.json
+     y se regenera con antamina_modelo.py.
+   - FICHA_UNIDAD: qué respalda la fuente (con página o figura) y qué se interpretó, por unidad.
+   Abreviaturas: LS2005 = Lipten y Smith (2005); R1999 = Redwood (1999); PG = PorterGeo;
+   M2018 = Mrozek (2018, solo resumen).
+   ===================================================================================== */
+const INICIO={modo:"tajo",corte:{on:false,az:90,off:0},
+  ocultas:["falla_hipotetica_H1","sondajes","leyes","excavado"],     // disponibles para demostración, apagadas al abrir
+  opacidad:{superficie:1,excavado:0.25,falla_cabalgamiento:0.55,falla_valle:0.55,falla_hipotetica_H1:0.45}};
+/* Cada ficha separa: mineral = fuente de la asociación mineral; dimensiones = fuente de la orientación o las dimensiones;
+   geometria = carácter (interpretado / hipotético) de la forma dibujada. */
+const FICHA_UNIDAD={
+  intrusivo:{estado:"f",
+    mineral:"Pórfido de cuarzo-monzonita con calcopirita y molibdenita diseminadas; la molibdenita se concentra en el núcleo intrusivo y en el endoskarn que lo rodea (LS2005 p. 200).",
+    dimensiones:"800 × 750 m a la cota 3900, elongado al NE; espolón NE de 350 × 150 m y espolón SW de 500 m × 50–170 m; 1700 m de largo a esa cota y poca variación de forma hasta los 3850 m (LS2005 p. 197).",
+    geometria:"Interpretada: techo, domo y diques; bajo 3900 m el stock se inclina 12° al SE y se ensancha un 8 %; contacto ondulado ±30 m. Planta no georreferenciada."},
+  endoskarn:{estado:"i",
+    mineral:"Endoskarn de granate pardo: hay tramos importantes sin Cu y casi todo el Cu del endoskarn no brechado va en vetas con alteración retrógrada (LS2005 p. 196); retrógrada de clorita y epidota (LS2005 p. 199).",
+    dimensiones:"Posición: primera zona desde el núcleo intrusivo (LS2005 p. 195, figs. 5 y 6). El espesor no está publicado.",
+    geometria:"Interpretada: 35 m ±40 % hacia dentro del contacto, siempre del lado del intrusivo."},
+  exoskarn:{estado:"f",
+    mineral:"Calcopirita en todas las zonas, esfalerita en el halo externo y bornita en la zona de wollastonita (LS2005 pp. 197–198 y 201).",
+    dimensiones:"Caparazón de 300–400 m de ancho alrededor de los intrusivos; de 70 a 800 m en niveles altos (LS2005 p. 197).",
+    geometria:"Interpretada: espesor variable, más grueso a lo largo del eje NE y con variación lateral; siempre del lado de la roca hospedante."},
+  jumasha_techo:{estado:"i",
+    mineral:"Calizas sin mena fuera de la aureola; mármol junto al skarn (LS2005 p. 198).",
+    dimensiones:"La Fm. Jumasha cabalga a la Fm. Celendín (LS2005 p. 191, fig. 4). PorterGeo atribuye cerca del 75 % del exoskarn al reemplazo del Jumasha (PG).",
+    geometria:"Interpretada: lámina sobre el cabalgamiento rampa-rellano; cotas y posición asumidas."},
+  celendin:{estado:"i",
+    mineral:"Margas y calizas; hornfels junto al skarn (LS2005 p. 198).",
+    dimensiones:"Bajo el cabalgamiento del Jumasha (LS2005 p. 191). Redwood sitúa el skarn en la Fm. Celendín engrosada en un dúplex (R1999).",
+    geometria:"Interpretada: 220 m de espesor vertical bajo el cabalgamiento."},
+  jumasha_piso:{estado:"i",
+    mineral:"Calizas sin mena fuera de la aureola.",
+    dimensiones:"El depósito está en una lengua de al menos seis láminas cabalgadas de bajo ángulo, de 3 × 3 km (LS2005 p. 200).",
+    geometria:"Interpretada: todo el bloque piso se representa como una sola unidad."},
+  granate_pardo:{litologia:"Exoskarn de granate pardo (proximal)",estado:"i",
+    mineral:"Skarn granular de granate pardo de grano medio; en el exoskarn mixto el granate pardo forma vetillas que cortan el granate verde (LS2005 p. 197).",
+    dimensiones:"El espesor no está publicado.",
+    geometria:"Interpretada: franja de 60 m ±50 % junto al contacto."},
+  granate_verde:{litologia:"Exoskarn de granate verde",estado:"i",
+    mineral:"Mena de calcopirita-esfalerita o solo esfalerita, de diseminada a masiva; la esfalerita promedia 3–5 % (LS2005 p. 198).",
+    dimensiones:"Ocupa la mayor parte del caparazón; espesor no publicado (LS2005 pp. 197–198).",
+    geometria:"Interpretada: lo que queda del caparazón entre el granate pardo y la wollastonita."},
+  wollastonita_diopsido:{litologia:"Exoskarn de wollastonita y diópsido (distal)",estado:"i",
+    mineral:"Zona interna de wollastonita con mena de bornita y zona externa, junto al mármol, con bornita-esfalerita (LS2005 p. 198).",
+    dimensiones:"La bornita (≈8 % del Cu) se asocia a la wollastonita en el extremo sur del depósito (LS2005 p. 201).",
+    geometria:"Interpretada: franja más ancha al S (hasta ~80 m) que se adelgaza y termina hacia el N."},
+  dom_Mo:{litologia:"Intrusivo (pórfido de cuarzo-monzonita) y endoskarn",estado:"i",
+    mineral:"Molibdenita confinada sobre todo al núcleo intrusivo y al endoskarn (LS2005 p. 200).",
+    dimensiones:"Sin dimensiones publicadas.",
+    geometria:"Interpretada: núcleo de 160 m ±30 % bajo el endoskarn que termina hacia arriba cerca de los 4230 m."},
+  dom_Cu:{litologia:"Endoskarn y exoskarn de granate pardo y verde",estado:"f",
+    mineral:"Calcopirita como sulfuro de Cu predominante (LS2005 p. 201).",
+    dimensiones:"El Cu se reparte de forma bastante uniforme desde el endoskarn hasta el contacto con la caliza (LS2005 p. 200, fig. 9).",
+    geometria:"Interpretada: el skarn menos los halos Cu-Zn, bornita y Mo; no viene de sondajes."},
+  dom_CuZn:{litologia:"Exoskarn de granate verde y diópsido, junto al mármol u hornfels",estado:"f",
+    mineral:"Calcopirita y esfalerita; el Zn y el Bi tienden a quedar a menos de 70 m del contacto granate verde/caliza (LS2005 p. 200, figs. 9 y 10).",
+    dimensiones:"Halo de 100–200 m en niveles altos y de 20–50 m en profundidad (PG).",
+    geometria:"Interpretada: el ancho varía con la cota entre esos valores, ±30 %."},
+  dom_CuBn_Zn_Bi:{litologia:"Exoskarn de wollastonita y granate verde",estado:"f",
+    mineral:"Bornita, esfalerita y sulfosales de Bi (LS2005 pp. 198 y 201).",
+    dimensiones:"Cerca del 8 % del Cu está como bornita en el extremo sur (LS2005 p. 201); zona de ~400 m × ≤160 m en el centro-SE (PG).",
+    geometria:"Interpretada: posición y forma recortadas por el skarn."},
+  dom_AgPbZn:{litologia:"Mármol, hornfels y mantos o vetas de skarn",estado:"i",
+    mineral:"Vetas y mantos periféricos ricos en Pb, Zn y Ag, sin Cu ni molibdenita (LS2005 p. 201); Pb en el exoskarn de granate verde, de diópsido y el hornfels (LS2005 p. 200).",
+    dimensiones:"Sin dimensiones publicadas.",
+    geometria:"Interpretada: halo de 50 m con interrupciones, para representar vetas y mantos discontinuos."},
+  falla_cabalgamiento:{estado:"i",
+    dimensiones:"Jumasha sobre Celendín (LS2005 p. 191, fig. 4); láminas de bajo ángulo con vergencia NE (LS2005 p. 200); rampas frontales NW y laterales NE empinadas (R1999).",
+    geometria:"Interpretada: rampa-rellano con rellanos de ~6° y una rampa de ~35° al SW; cota y posición asumidas."},
+  falla_valle:{estado:"i",
+    dimensiones:"Falla longitudinal NE-SW, la estructura más antigua de la mina; controló parte de la intrusión y el valle (LS2005 p. 200, figs. 7 y 8). Subvertical según el resumen de Mrozek (M2018).",
+    geometria:"Interpretada: plano N045/85° SE trazado por el eje del valle."},
+  falla_hipotetica_H1:{estado:"h",
+    geometria:"Hipotética: no está descrita en las fuentes. Solo sirve para mostrar cómo el modelo corta y desplaza las unidades (salto de 30 m)."},
+  superficie:{estado:"s",sintetico:"Topografía con las cotas publicadas (valle 4200 → 4100 m, crestas 4640–5073 m; LS2005 p. 193). Tajo ILUSTRATIVO: fondo en dos lóbulos a 3860 m, bancos de 15 m con caras de 65° y bermas de 10 m, y una rampa de 35 m al 10 %. El trazado y las dimensiones son supuestos; no es el tajo real."},
+  excavado:{estado:"s",sintetico:"Volumen entre la topografía pre-mina y el tajo ilustrativo."},
+  sondajes:{estado:"s",sintetico:"24 sondajes SINTÉTICOS (SYN-01 a SYN-24). Sus trayectorias son inventadas y sus intervalos se muestrearon del propio modelo, solo para mostrar cómo se importan y se cortan."},
+  leyes:{estado:"s",sintetico:"Ley de Cu SINTÉTICA: función de la distancia al contacto más ruido espacial. Solo reproduce los colores de la imagen de referencia; no es un dato ni una estimación de Antamina."}
+};
+const TXT={f:"dim. fuente",i:"interpretado",s:"sintético",h:"hipotética"};
+const LEYC=[[0.2,"#2e7d32"],[0.3,"#c6e05a"],[0.5,"#f5e23b"],[0.7,"#f7a21b"],[1.0,"#ef6c00"],[99,"#c62828"]];
+const LEYC_TXT=["< 0,20 %","0,20–0,30","0,30–0,50","0,50–0,70","0,70–1,00","> 1,00 %"];
+const colorLey=c=>{for(const[l,h]of LEYC)if(c<l)return h;return"#c62828"};
+
+/* ===================================================================================== */
+const $=s=>document.querySelector(s);
+const Z0=4200;                                   // cota que se usa como origen vertical en 3D
+const toV=(x,y,z)=>[x,z-Z0,-y];                  // modelo (E,N,cota) -> three (x, arriba, -norte)
+const RES=5, ZMIN=3500, ZMAX=5000;               // rejilla del perfil (m)
+let M,BIN,escena,cam,rend,ctrl,capas={},planoCorte,planoSec=null,raycaster=new THREE.Raycaster(),objetosClic=[];
+let SETS={},SEL=null,CORTE=null,SUP=null,RAMPA=null,HUELLA=null,LUZ=null;
+const f32=(o,l)=>new Float32Array(BIN,o,l/4), u32=(o,l)=>new Uint32Array(BIN,o,l/4),
+      u8=(o,l)=>new Uint8Array(BIN,o,l), i16=(o,l)=>new Int16Array(BIN,o,l/2);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function aviso(t){const a=$("#aviso");a.textContent=t;a.classList.add("on");clearTimeout(aviso._t);aviso._t=setTimeout(()=>a.classList.remove("on"),2600)}
+
+// ---------------------------------------------------------------- pestañas
+document.querySelectorAll("nav button[role=tab]").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("nav button[role=tab]").forEach(x=>x.setAttribute("aria-selected",x===b));
+  document.querySelectorAll(".vista").forEach(v=>v.hidden=v.id!==b.dataset.v);
+  $("#barraCorte").hidden=b.dataset.v==="vfic";$("#barraHerr").hidden=b.dataset.v!=="v3d";
+  if(b.dataset.v==="v3d")redimensionar();
+  try{localStorage.setItem("ant3d.tab",b.id)}catch(e){}
+}));
+
+// ---------------------------------------------------------------- carga
+// ---- carga con progreso, mensaje de error y botón para reintentar
+let ARRANCADO=false,TAM=[0,0],ENCUADRE_PENDIENTE=false;
+function mostrarErrorCarga(msg){
+  const c=$("#carga");if(!c)return;
+  c.innerHTML=`<div style="text-align:center;max-width:440px;padding:16px;line-height:1.5"><p style="margin:0 0 6px">No se pudo cargar el modelo.</p><p class="nota" style="margin:0 0 12px">${esc(msg)}</p><button class="btn prim" id="b-reintentar">Reintentar</button></div>`;
+  $("#b-reintentar").onclick=()=>{if(ARRANCADO||M)location.reload();else cargarModelo()};
+}
+function cargarModelo(){
+  const c=$("#carga");if(c)c.textContent="Cargando modelo…";
+  const pedir=(u,t)=>fetch(u).then(r=>{if(!r.ok)throw new Error(u+" respondió "+r.status);return r[t]()});
+  const reloj=setTimeout(()=>{const c=$("#carga");if(c&&!ARRANCADO)c.textContent="Cargando modelo… (la conexión está lenta)"},20000);
+  pedir("modelo.json","json").then(m=>{let hechos=0;const partes=m.partes||["modelo.bin"];
+    return Promise.all(partes.map(u=>pedir(u,"arrayBuffer").then(b=>{hechos++;const c=$("#carga");if(c)c.textContent=`Cargando modelo… ${hechos} de ${partes.length} partes`;return b}))).then(bs=>{
+      const n=bs.reduce((a,b)=>a+b.byteLength,0),u=new Uint8Array(n);let o=0;for(const b of bs){u.set(new Uint8Array(b),o);o+=b.byteLength}return[m,u.buffer]})})
+  .then(([m,b])=>{clearTimeout(reloj);
+    M=m;BIN=b;
+    try{prepararDatos();iniciar3D();construirPanel();construirFicha();prepararControles();ARRANCADO=true;aplicarInicio();const c=$("#carga");if(c)c.remove()}
+    catch(e){console.error(e);mostrarErrorCarga("Error al iniciar el visor: "+e.message)}
+  }).catch(e=>{clearTimeout(reloj);console.error(e);mostrarErrorCarga(e.message)});
+}
+cargarModelo();
+
+function prepararDatos(){
+  for(const k in M.compartidas){const c=M.compartidas[k],pi=i16(...c.pos_i16),P=new Float32Array(pi.length);
+    for(let i=0;i<pi.length;i+=3){P[i]=pi[i]*c.escala;P[i+1]=pi[i+1]*c.escala;P[i+2]=pi[i+2]*c.escala+c.z0}
+    const T=new Float32Array(P.length);for(let i=0;i<P.length;i+=3){T[i]=P[i];T[i+1]=P[i+2]-Z0;T[i+2]=-P[i+1]}
+    SETS[k]={P,Q:u32(...c.quads),BL:u8(...c.bl),attr:new THREE.BufferAttribute(T,3)}}
+  for(const c of M.capas){c.ficha=FICHA_UNIDAD[c.clave]||{estado:"i"};c.nombre=c.nombre.replace("(HIPOTETICA)","(Hipotética)");
+    if(c.attr&&c.attr.estado)c.attr=Object.assign({},c.attr,{estado:c.attr.estado.replace("HIPOTETICA","Hipotética")});
+    if(c.tipo==="malla"){c.P=f32(...c.pos);c.I=u32(...c.idx)}}
+  const P=M.planta;P.cotaA=f32(...P.cota);P.preA=f32(...P.premina);
+  // superficie actual: rejilla de 4 m -> malla (misma geometría para 3D, planta y perfil)
+  const sc=M.capas.find(c=>c.clave==="superficie"),R0=sc.rejilla,zi=i16(...R0.z_dm),n=R0.nx*R0.ny,Pp=new Float32Array(n*3);
+  for(let j=0;j<R0.ny;j++)for(let i=0;i<R0.nx;i++){const k=j*R0.nx+i;Pp[3*k]=R0.x0+i*R0.paso;Pp[3*k+1]=R0.y0+j*R0.paso;Pp[3*k+2]=zi[k]/10+R0.z0}
+  const I=new Uint32Array((R0.nx-1)*(R0.ny-1)*6);let q=0;
+  for(let j=0;j<R0.ny-1;j++)for(let i=0;i<R0.nx-1;i++){const a=j*R0.nx+i,b=a+1,c=a+R0.nx,d=c+1;I[q++]=a;I[q++]=b;I[q++]=d;I[q++]=a;I[q++]=d;I[q++]=c}
+  sc.P=Pp;sc.I=I;SUP=R0;
+  RAMPA=f32(...M.rampa.eje);
+  // huella del tajo (para el encuadre «Tajo completo»)
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,z0=1e9;
+  for(let k=0;k<n;k+=3){const x=Pp[3*k],y=Pp[3*k+1],z=Pp[3*k+2];if(z<bilin(P.preA,x,y)-2){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);z0=Math.min(z0,z)}}
+  HUELLA={x0,x1,y0,y1,zmin:z0,borde:[]};
+  const clA=u8(...R0.clase);
+  for(let j=4;j<R0.ny-4;j+=6)for(let i=4;i<R0.nx-4;i+=6){const k=j*R0.nx+i;if(!clA[k])continue;if(!clA[k+5]||!clA[k-5]||!clA[k+5*R0.nx]||!clA[k-5*R0.nx])HUELLA.borde.push([Pp[3*k],Pp[3*k+1],Pp[3*k+2]])}
+  const R=M.rejilla_cu;R.A=i16(...R.cu);
+  const s=M.capas.find(c=>c.clave==="sondajes");s.P=f32(...s.pos);s.A=f32(...s.attr_buf);
+}
+
+// ---------------------------------------------------------------- 3D
+function iniciar3D(){
+  const cont=$("#lienzo3d");
+  rend=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+  rend.setPixelRatio(Math.min(devicePixelRatio,2));rend.localClippingEnabled=true;
+  cont.prepend(rend.domElement);
+  escena=new THREE.Scene();
+  const fondo=()=>rend.setClearColor(css("--canvas")||"#dfe5ea");fondo();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{fondo();redibujarTodo()});
+  cam=new THREE.PerspectiveCamera(40,1,10,40000);
+  ctrl=new THREE.OrbitControls(cam,rend.domElement);ctrl.enableDamping=true;ctrl.addEventListener("start",()=>{VUELO=null});
+  LUZ={hemi:new THREE.HemisphereLight(0xf4f1ea,0x404850,0.78),sol:new THREE.DirectionalLight(0xffffff,0.72),sol2:new THREE.DirectionalLight(0xffffff,0.25)};
+  for(const k in LUZ)escena.add(LUZ[k]);luces("geo");
+  planoCorte=new THREE.Plane(new THREE.Vector3(0,0,-1),0);
+  for(const c of M.capas)crearCapa(c);
+  new ResizeObserver(redimensionar).observe(cont);redimensionar();
+  rend.domElement.addEventListener("pointerdown",e=>{rend.domElement._p=[e.clientX,e.clientY]});
+  rend.domElement.addEventListener("pointerup",e=>{const p=rend.domElement._p;if(p&&Math.hypot(e.clientX-p[0],e.clientY-p[1])<5)clic3D(e)});
+  const v=new THREE.Vector3();
+  window.addEventListener("resize",redimensionar);
+  (function bucle(){requestAnimationFrame(bucle);if($("#v3d").hidden)return;
+    const lz=$("#lienzo3d");if(lz.clientWidth!==TAM[0]||lz.clientHeight!==TAM[1])redimensionar();
+    pasoVuelo();ctrl.update();
+    cam.getWorldDirection(v);$("#flechaN").style.transform=`rotate(${Math.atan2(v.x,-v.z)*-180/Math.PI}deg)`;
+    pasoAnimacion();renderizar();marcasA();marcasRampa();actualizarEscala()})();
+}
+let VUELO=null;
+function vuelo(fn,ms=1500){   // aplica un encuadre con una transición suave de cámara
+  const p0=cam.position.clone(),t0=ctrl.target.clone();fn();const p1=cam.position.clone(),t1=ctrl.target.clone();
+  if(!tamanoValido()||p0.distanceTo(p1)<1){VUELO=null;return}
+  cam.position.copy(p0);ctrl.target.copy(t0);ctrl.update();VUELO={p0,t0,p1,t1,t:0,dur:ms,u:performance.now()};
+}
+function pasoVuelo(){
+  if(!VUELO)return;const a=performance.now();VUELO.t=Math.min(VUELO.dur,VUELO.t+(a-VUELO.u));VUELO.u=a;
+  const u=VUELO.t/VUELO.dur,e=u<0.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+  cam.position.lerpVectors(VUELO.p0,VUELO.p1,e);ctrl.target.lerpVectors(VUELO.t0,VUELO.t1,e);if(u>=1)VUELO=null;
+}
+function luces(modo){
+  if(modo==="tajo"){   // luz lateral suave desde el ONO, baja, para que se lean caras, bermas y rampa
+    LUZ.hemi.color.set(0xdfe3e6);LUZ.hemi.groundColor.set(0x8f8676);LUZ.hemi.intensity=0.8;
+    LUZ.sol.intensity=0.78;LUZ.sol.position.set(...toV(-2700,1300,4200+2100));LUZ.sol2.intensity=0.32;LUZ.sol2.position.set(...toV(300,-400,4200+4000));   // luz cenital suave: el fondo del tajo no queda en sombra
+  }else{
+    LUZ.hemi.color.set(0xf4f1ea);LUZ.hemi.groundColor.set(0x404850);LUZ.hemi.intensity=0.82;
+    LUZ.sol.intensity=0.78;LUZ.sol.position.set(-2500,4000,3000);LUZ.sol2.intensity=0.25;LUZ.sol2.position.set(2500,1500,-3000);
+  }
+}
+function texturaRoca(){   // grano mate de roca, repetido cada 90 m
+  const cv=document.createElement("canvas");cv.width=cv.height=256;const ctx=cv.getContext("2d");
+  const s=document.createElement("canvas");s.width=s.height=32;const sc=s.getContext("2d"),im=sc.createImageData(32,32);
+  let a=12345;const rnd=()=>(a=(a*1103515245+12345)&0x7fffffff)/0x7fffffff;
+  for(let i=0;i<im.data.length;i+=4){const v=200+rnd()*55;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}sc.putImageData(im,0,0);
+  ctx.imageSmoothingEnabled=true;ctx.drawImage(s,0,0,256,256);
+  const g=ctx.getImageData(0,0,256,256);for(let i=0;i<g.data.length;i+=4){const v=g.data[i]*(0.9+rnd()*0.1);g.data[i]=g.data[i+1]=g.data[i+2]=v}ctx.putImageData(g,0,0);
+  const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;return t;
+}
+function ruido2(x,y){   // ruido de valor suave (0..1), sin patrón repetido visible
+  const h=(i,j)=>{let n=(i*374761393+j*668265263)|0;n=(n^(n>>>13))*1274126177|0;return((n^(n>>>16))>>>0)/4294967295};
+  const i=Math.floor(x),j=Math.floor(y),u=x-i,v=y-j,su=u*u*(3-2*u),sv=v*v*(3-2*v);
+  return(h(i,j)*(1-su)+h(i+1,j)*su)*(1-sv)+(h(i,j+1)*(1-su)+h(i+1,j+1)*su)*sv}
+function geomSuperficie(c){
+  const R=c.rejilla,P=c.P,n=P.length/3,pos=new Float32Array(P.length),uv=new Float32Array(n*2),col=new Float32Array(P.length),cl=u8(...R.clase);
+  const C=k=>new THREE.Color(k);
+  const nat=[C("#8c8a68"),C("#7b7a5e"),C("#857c6c"),C("#6f6c5a")],   // puna, puna húmeda, roca expuesta, quebrada
+        tajo={1:C("#756d61"),2:C("#958b7c"),3:C("#7b7366"),4:C("#b29667"),5:C("#4a453d"),6:C("#857c6f")};   // berma, cara, borde, rampa, borde de rampa, fondo
+  const t=new THREE.Color(),Z=k=>P[3*k+2];
+  // tinte de la roca expuesta según la unidad en superficie (planta de 20 m): «estratificación» sugerida, ilustrativa
+  const PL=M.planta,litP=u8(...PL.lit),TINTE={1:C("#b3a29f"),2:C("#9d7563"),3:C("#8f9069"),4:C("#9aa0a3"),5:C("#a29b8c"),6:C("#949ba0")};
+  const tin=new THREE.Color(),tq=new THREE.Color();
+  const tinte=(x,y)=>{   // mezcla bilineal de los colores de las cuatro celdas vecinas (sin bloques de 20 m)
+    const fx=Math.max(0,Math.min(PL.nx-1.001,(x-PL.x0)/PL.paso)),fy=Math.max(0,Math.min(PL.ny-1.001,(y-PL.y0)/PL.paso)),i=Math.floor(fx),j=Math.floor(fy),u=fx-i,w=fy-j;
+    tin.setRGB(0,0,0);let s=0;for(const[di,dj,pe]of[[0,0,(1-u)*(1-w)],[1,0,u*(1-w)],[0,1,(1-u)*w],[1,1,u*w]]){const c=litP[(j+dj)*PL.nx+i+di];if(!c)continue;tq.copy(TINTE[c]).multiplyScalar(pe);tin.add(tq);s+=pe}
+    return s>0.2?tin.multiplyScalar(1/s):null};
+  for(let j=0;j<R.ny;j++)for(let i=0;i<R.nx;i++){const k=j*R.nx+i,x=P[3*k],y=P[3*k+1],z=P[3*k+2];
+    pos[3*k]=x;pos[3*k+1]=z-Z0;pos[3*k+2]=-y;uv[2*k]=x/36;uv[2*k+1]=y/36;
+    const c0=cl[k];
+    if(c0===0){   // terreno natural: laderas, roca expuesta en lo empinado, quebradas más oscuras y variación a gran escala
+      const i1=Math.min(i+3,R.nx-1),i0=Math.max(i-3,0),j1=Math.min(j+3,R.ny-1),j0=Math.max(j-3,0);
+      const zx=(Z(j*R.nx+i1)-Z(j*R.nx+i0))/((i1-i0)*R.paso),zy=(Z(j1*R.nx+i)-Z(j0*R.nx+i))/((j1-j0)*R.paso),pend=Math.hypot(zx,zy);
+      const lap=(Z(j*R.nx+i1)+Z(j*R.nx+i0)+Z(j1*R.nx+i)+Z(j0*R.nx+i)-4*z)/(9*R.paso*R.paso);
+      const g=ruido2(x/650,y/650)*0.6+ruido2(x/170+11,y/170+7)*0.4;
+      t.copy(nat[0]).lerp(nat[1],g);t.lerp(nat[2],Math.min(1,Math.max(0,(pend-0.35)/0.5)+Math.max(0,(z-4550)/350)));
+      t.lerp(nat[3],Math.min(0.7,Math.max(0,lap*90)));
+      t.multiplyScalar(0.92+0.14*ruido2(x/90,y/90));
+    }else{t.copy(tajo[c0]);
+      if(c0===1||c0===2||c0===3||c0===6){const q=tinte(x,y);if(q)t.lerp(q,c0===2?0.4:0.22)}
+      // sombra suave en los cambios de pendiente: pie de banco (cóncavo) más oscuro, borde (convexo) apenas más claro
+      const i1=Math.min(i+1,R.nx-1),i0=Math.max(i-1,0),j1=Math.min(j+1,R.ny-1),j0=Math.max(j-1,0);
+      const lap=(Z(j*R.nx+i1)+Z(j*R.nx+i0)+Z(j1*R.nx+i)+Z(j0*R.nx+i)-4*z)/4;
+      t.multiplyScalar(Math.min(1.05,Math.max(0.66,1-0.06*lap)));
+      t.multiplyScalar(0.94+0.1*ruido2(x/45+3,y/45+5))}
+    col[3*k]=t.r;col[3*k+1]=t.g;col[3*k+2]=t.b}
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pos,3));g.setAttribute("uv",new THREE.BufferAttribute(uv,2));
+  g.setAttribute("color",new THREE.BufferAttribute(col,3));g.setIndex(new THREE.BufferAttribute(c.I,1));
+  const nor=new Float32Array(P.length);
+  for(let j=0;j<R.ny;j++)for(let i=0;i<R.nx;i++){const k=j*R.nx+i,i1=Math.min(i+3,R.nx-1),i0=Math.max(i-3,0),j1=Math.min(j+3,R.ny-1),j0=Math.max(j-3,0);
+    const zx=(Z(j*R.nx+i1)-Z(j*R.nx+i0))/((i1-i0)*R.paso),zy=(Z(j1*R.nx+i)-Z(j0*R.nx+i))/((j1-j0)*R.paso),L=Math.hypot(zx,zy,1);
+    nor[3*k]=-zx/L;nor[3*k+1]=1/L;nor[3*k+2]=zy/L}
+  g.setAttribute("normal",new THREE.BufferAttribute(nor,3));return g;
+}
+function redimensionar(){if(!rend)return;const c=$("#lienzo3d"),w=c.clientWidth,h=c.clientHeight;if(!w||!h)return;
+  TAM=[w,h];rend.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();
+  if(ENCUADRE_PENDIENTE&&ARRANCADO){ENCUADRE_PENDIENTE=false;if(ESC<0)encuadreTajo()}}   // el primer encuadre se calculó sin tamaño real
+function tamanoValido(){const c=$("#lienzo3d");return c.clientWidth>0&&c.clientHeight>0}
+function geomCompartida(c){
+  const S=SETS[c.conjunto],Q=S.Q,BL=S.BL,cod=c.codigo,nq=Q.length/4;let n=0;
+  for(let q=0;q<nq;q++)if(BL[2*q]===cod||BL[2*q+1]===cod)n++;
+  const ix=new Uint32Array(n*6);let j=0;
+  for(let q=0;q<nq;q++){const a=Q[4*q],b=Q[4*q+1],cc=Q[4*q+2],d=Q[4*q+3];
+    if(BL[2*q]===cod){ix[j++]=a;ix[j++]=b;ix[j++]=cc;ix[j++]=a;ix[j++]=cc;ix[j++]=d}           // normal hacia fuera de la etiqueta 1
+    else if(BL[2*q+1]===cod){ix[j++]=a;ix[j++]=cc;ix[j++]=b;ix[j++]=a;ix[j++]=d;ix[j++]=cc}}
+  const g=new THREE.BufferGeometry();g.setAttribute("position",S.attr);g.setIndex(new THREE.BufferAttribute(ix,1));g.computeVertexNormals();return g;
+}
+function geomMalla(c){
+  const p=c.P,pos=new Float32Array(p.length);
+  for(let i=0;i<p.length;i+=3){pos[i]=p[i];pos[i+1]=p[i+2]-Z0;pos[i+2]=-p[i+1]}
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pos,3));g.setIndex(new THREE.BufferAttribute(c.I,1));
+  g.computeVertexNormals();return g;
+}
+function crearCapa(c){
+  let obj;
+  if(c.tipo==="compartida"){
+    const mat=new THREE.MeshLambertMaterial({color:c.color,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:c.grupo==="Litologias"?1:-1,polygonOffsetUnits:c.grupo==="Litologias"?1:-1});
+    obj=new THREE.Mesh(geomCompartida(c),mat);
+  }else if(c.tipo==="rejilla"){
+    obj=new THREE.Mesh(geomSuperficie(c),new THREE.MeshStandardMaterial({vertexColors:true,map:texturaRoca(),roughness:1,metalness:0,flatShading:false,
+      side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-6}));
+  }else if(c.tipo==="malla"){
+    const g=geomMalla(c);let mat;
+    if(c.clave==="superficie"){
+      const p=g.attributes.position.array,col=new Float32Array(p.length),c1=new THREE.Color("#8a7a62"),c2=new THREE.Color("#ece5d6"),t=new THREE.Color();
+      for(let i=0;i<p.length;i+=3){const k=Math.min(1,Math.max(0,(p[i+1]+Z0-3980)/900));t.copy(c1).lerp(c2,k);col[i]=t.r;col[i+1]=t.g;col[i+2]=t.b}
+      g.setAttribute("color",new THREE.BufferAttribute(col,3));
+      mat=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-6});
+    }else mat=new THREE.MeshLambertMaterial({color:c.color,side:THREE.DoubleSide});
+    obj=new THREE.Mesh(g,mat);
+  }else if(c.tipo==="lineas"){
+    const p=c.P,n=p.length/3,pos=new Float32Array(p.length),col=new Float32Array(p.length);
+    for(let i=0;i<n;i++)pos.set(toV(p[3*i],p[3*i+1],p[3*i+2]),3*i);
+    const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pos,3));g.setAttribute("color",new THREE.BufferAttribute(col,3));
+    obj=new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true}));
+  }else if(c.tipo==="puntos"){   // bloques de 30 m con ley SINTÉTICA: un cubo por bloque (instancias), recortables por A–A′
+    const p=f32(...c.pos),n=p.length/4,lado=c.tam*0.9,m4=new THREE.Matrix4(),t=new THREE.Color();
+    obj=new THREE.InstancedMesh(new THREE.BoxGeometry(lado,lado,lado),new THREE.MeshLambertMaterial(),n);obj.frustumCulled=false;
+    const pos=new Float32Array(n*3),cu=new Float32Array(n);
+    for(let i=0;i<n;i++){const v=toV(p[4*i],p[4*i+1],p[4*i+2]);pos.set(v,3*i);cu[i]=p[4*i+3];m4.makeTranslation(...v);obj.setMatrixAt(i,m4);obj.setColorAt(i,t.set(colorLey(cu[i])))}
+    obj.instanceMatrix.needsUpdate=true;obj.instanceColor.needsUpdate=true;obj.userData.pos=pos;obj.userData.cu=cu;
+  }
+  obj.userData.capa=c;obj.visible=c.visible;obj.name=c.clave;escena.add(obj);capas[c.clave]=obj;
+  if((c.tipo==="compartida"||c.tipo==="malla")&&c.clave!=="superficie"&&c.clave!=="excavado")objetosClic.push(obj);
+}
+function fijarOpacidad(k,v){
+  const o=capas[k];if(!o||!o.material)return;const m=o.material;
+  m.opacity=v;m.transparent=v<0.999;m.depthWrite=v>=0.999;m.needsUpdate=true;o.userData.op=v;
+  const r=document.querySelector(`input.op[data-k="${k}"]`);if(r&&+r.value!==v)r.value=v;
+}
+function colorearSondajes(){
+  const o=capas.sondajes,c=o.userData.capa,a=c.A,col=o.geometry.attributes.color.array,t=new THREE.Color();
+  const porLey=capas.leyes.visible;
+  for(let s=0;s<a.length/3;s++){const li=a[3*s],cu=a[3*s+2];
+    t.set(porLey?(cu<0?"#777":colorLey(cu)):(li>0?M.leyenda.lito[li-1][3]:"#777"));if(!porLey)t.multiplyScalar(0.75);
+    for(const k of[0,1]){col[6*s+3*k]=t.r;col[6*s+3*k+1]=t.g;col[6*s+3*k+2]=t.b}}
+  o.geometry.attributes.color.needsUpdate=true;
+}
+function fijarCam(p,t){cam.position.set(...p);ctrl.target.set(...t);ctrl.update()}
+function encuadrar(centro,dirModelo,esquinas,mx=0.93,my=0.88){   // aleja la cámara hasta que todas las esquinas entran en el lienzo
+  const c=new THREE.Vector3(...toV(...centro)),d=new THREE.Vector3(dirModelo[0],dirModelo[2],-dirModelo[1]).normalize(),pts=esquinas.map(q=>new THREE.Vector3(...toV(...q)));
+  let lo=100,hi=30000;
+  for(let it=0;it<32;it++){const mid=(lo+hi)/2;cam.position.copy(c).addScaledVector(d,mid);cam.lookAt(c);cam.updateMatrixWorld(true);
+    let ok=true;for(const p of pts){const v=p.clone().project(cam);if(v.z>1||Math.abs(v.x)>mx||Math.abs(v.y)>my){ok=false;break}}if(ok)hi=mid;else lo=mid}
+  cam.position.copy(c).addScaledVector(d,hi);ctrl.target.copy(c);ctrl.update();
+}
+function esquinasCaja(ztop){const B=M.caja,r=[];for(const x of[B.xmin,B.xmax])for(const y of[B.ymin,B.ymax])for(const z of[B.zmin,ztop||4950])r.push([x,y,z]);return r}
+function vistaIso(){encuadrar([0,0,4150],[-0.55,-0.75,0.7],esquinasCaja(4650))}
+function vistaFrente(){   // encuadra solo la mitad que queda tras el corte, vista de frente y algo desde arriba
+  const G=CORTE,esq=esquinasCaja(4650).filter(q=>G.n[0]*q[0]+G.n[1]*q[1]-G.off>=0);
+  for(const P of[G.A,G.Ap])for(const z of[3500,4650])esq.push([P[0],P[1],z]);
+  const cx=esq.reduce((s,q)=>s+q[0],0)/esq.length,cy=esq.reduce((s,q)=>s+q[1],0)/esq.length;
+  encuadrar([cx,cy,4120],[-G.n[0]*0.9-G.d[0]*0.25,-G.n[1]*0.9-G.d[1]*0.25,0.62],esq)}
+function marcarEncuadre(m){$("#b-tajo").setAttribute("aria-pressed",m==="tajo");$("#b-geo").setAttribute("aria-pressed",m==="geo")}
+function encuadreTajo(){
+  detenerAnimacion();$("#cOn").checked=false;
+  for(const c of M.capas){if(["Zonacion del exoskarn","Dominios mineralizados","Leyes","Sondajes","Litologias","Fallas"].includes(c.grupo)||c.clave==="excavado")fijarVisible(c.clave,false)}
+  fijarVisible("superficie",true);fijarOpacidad("superficie",1);luces("tajo");
+  // vista aérea oblicua desde el SE, perpendicular al eje NE del tajo: se ven los bancos, el fondo y la rampa
+  const H=HUELLA,cx=(H.x0+H.x1)/2,cy=(H.y0+H.y1)/2,esq=[];
+  for(const q of H.borde)esq.push(q);esq.push([cx,cy,H.zmin]);
+  encuadrar([cx,cy,H.zmin+170],[0.5,-0.72,0.62],esq,0.78,0.74);   // tajo completo con terreno alrededorniebla(true);marcarEncuadre("tajo");trasCambioCapas();leyenda3D();
+}
+function niebla(on){   // en la vista aérea difumina los bordes lejanos del bloque
+  if(!on){escena.fog=null;return}const d=cam.position.distanceTo(ctrl.target);escena.fog=new THREE.Fog(new THREE.Color(css("--canvas")||"#0e1318"),d*1.05,d*2.1)}
+function encuadreGeologia(){
+  detenerAnimacion();niebla(false);$("#cOn").checked=true;
+  for(const c of M.capas)if(c.grupo==="Fallas"&&c.clave!=="falla_hipotetica_H1")fijarVisible(c.clave,true);
+  for(const c of M.capas){if(["Zonacion del exoskarn","Dominios mineralizados","Leyes","Sondajes"].includes(c.grupo)||c.clave==="falla_hipotetica_H1"||c.clave==="excavado")fijarVisible(c.clave,false);
+    if(c.grupo==="Litologias")fijarVisible(c.clave,true)}
+  fijarVisible("superficie",true);fijarOpacidad("superficie",0.35);luces("geo");
+  vistaFrente();marcarEncuadre("geo");trasCambioCapas();
+}
+// ---- rampa resaltada: tubo sobre la malla existente a lo largo del eje de diseño (solo dentro del tajo)
+let rampaObj=null,rampaVis=false,RAMPA_EXT=null;
+function resaltarRampa(on){
+  rampaVis=on;$("#b-rampa").setAttribute("aria-pressed",on);
+  if(on&&!rampaObj){rampaObj=new THREE.Group();let tramo=[];const tramos=[];
+    for(let i=0;i<RAMPA.length;i+=4){if(RAMPA[i+3]>0.5)tramo.push(new THREE.Vector3(...toV(RAMPA[i],RAMPA[i+1],cotaSup(RAMPA[i],RAMPA[i+1])+3)));else if(tramo.length){tramos.push(tramo);tramo=[]}}
+    if(tramo.length)tramos.push(tramo);
+    for(const tr of tramos)if(tr.length>3){const cur=new THREE.CatmullRomCurve3(tr);rampaObj.add(new THREE.Mesh(new THREE.TubeGeometry(cur,Math.min(2400,tr.length*3),7,8,false),new THREE.MeshBasicMaterial({color:0xff7a00})))}
+    // acceso (punto más alto dentro del tajo) y llegada al fondo
+    let alto=null,bajo=null;for(let i=0;i<RAMPA.length;i+=4)if(RAMPA[i+3]>0.5){if(!alto||RAMPA[i+2]>alto[2])alto=[RAMPA[i],RAMPA[i+1],RAMPA[i+2]];if(!bajo||RAMPA[i+2]<bajo[2])bajo=[RAMPA[i],RAMPA[i+1],RAMPA[i+2]]}
+    RAMPA_EXT={acceso:alto,fondo:bajo};escena.add(rampaObj);
+    for(const o of rampaObj.children)o.material.clippingPlanes=$("#cOn").checked?[planoCorte]:[]}
+  if(rampaObj)rampaObj.visible=on;
+}
+function marcasRampa(){
+  {const el=$("#mFluidos");if(flechasObj&&flechasObj.userData.etq){const v=flechasObj.userData.etq.clone().project(cam),c=$("#lienzo3d");
+    if(v.z<1&&Math.abs(v.x)<1&&Math.abs(v.y)<1){el.style.display="block";el.style.left=((v.x+1)/2*c.clientWidth)+"px";el.style.top=((1-v.y)/2*c.clientHeight-8)+"px"}else el.style.display="none"}else el.style.display="none"}
+  for(const[id,k]of[["#mAcceso","acceso"],["#mFondo","fondo"]]){const el=$(id);if(!rampaVis||!RAMPA_EXT){el.style.display="none";continue}
+    const P=RAMPA_EXT[k],v=new THREE.Vector3(...toV(P[0],P[1],cotaSup(P[0],P[1])+25)).project(cam),c=$("#lienzo3d");
+    if(v.z>1||Math.abs(v.x)>1||Math.abs(v.y)>1){el.style.display="none";continue}
+    el.style.display="block";el.style.left=((v.x+1)/2*c.clientWidth)+"px";el.style.top=((1-v.y)/2*c.clientHeight)+"px"}
+}
+// ---- revelar subsuelo: el plano avanza desde el borde del bloque hasta A–A′ mientras la cámara gira hacia la cara
+let ANIM=null;
+function revelarSubsuelo(){
+  salirTour(true);niebla(false);
+  for(const c of M.capas){if(c.grupo==="Litologias")fijarVisible(c.clave,true);if(c.grupo==="Fallas"&&c.clave!=="falla_hipotetica_H1")fijarVisible(c.clave,true)}
+  fijarVisible("superficie",true);fijarOpacidad("superficie",1);trasCambioCapas();
+  $("#cAz").value=INICIO.corte.az;const meta=INICIO.corte.off,inicio=-1480;
+  $("#cOff").value=inicio;$("#cOn").checked=true;actualizarCorte(true);
+  const p0=cam.position.clone(),t0=ctrl.target.clone();
+  // cámara de llegada: frente a A–A′, algo elevada, con el tajo todavía a la vista
+  // cámara de llegada: el mismo encuadre ajustado de «Geología en corte», calculado sin mover la cámara actual
+  const G=geometriaCorte(INICIO.corte.az,meta),Gs=CORTE;CORTE=G;vistaFrente();const p1=cam.position.clone(),c3=ctrl.target.clone();CORTE=Gs;
+  cam.position.copy(p0);ctrl.target.copy(t0);ctrl.update();
+  ANIM={t:0,dur:4200,ultimo:performance.now(),inicio,meta,p0,t0,p1,t1:c3,pausa:false};
+  $("#b-pausa").hidden=false;$("#b-pausa").textContent="Pausa";$("#b-revelar").setAttribute("aria-pressed",true);marcarEncuadre("");luces("tajo");
+}
+function pasoAnimacion(){
+  if(!ANIM)return;const ahora=performance.now(),dt=ahora-ANIM.ultimo;ANIM.ultimo=ahora;if(ANIM.pausa)return;
+  ANIM.t=Math.min(ANIM.dur,ANIM.t+dt);const u=ANIM.t/ANIM.dur,e=u<0.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+  cam.position.lerpVectors(ANIM.p0,ANIM.p1,e);ctrl.target.lerpVectors(ANIM.t0,ANIM.t1,e);
+  const off=Math.round(ANIM.inicio+(ANIM.meta-ANIM.inicio)*e);if(+$("#cOff").value!==off){$("#cOff").value=off;actualizarCorte(true)}
+  if(u>=1){detenerAnimacion();actualizarCorte();leyenda3D()}
+}
+function pausarAnimacion(){if(!ANIM)return;ANIM.pausa=!ANIM.pausa;$("#b-pausa").textContent=ANIM.pausa?"Continuar":"Pausa"}
+function detenerAnimacion(){if(!ANIM)return;const fin=ANIM.t>=ANIM.dur;ANIM=null;$("#b-pausa").hidden=true;$("#b-revelar").setAttribute("aria-pressed",false);if(!fin)actualizarCorte()}
+// ===================================================================== TRES LECTURAS DEL MISMO BLOQUE
+let MODO="lit",AISLADO=null,ANTERIOR=null;const COMP={on:false,izq:"lit",der:"dom",x:0.5};
+const LITOS=()=>M.capas.filter(c=>c.grupo==="Litologias"),DOMS=()=>M.capas.filter(c=>c.grupo==="Dominios mineralizados");
+function opacidadRapida(o,v){const m=o.material;m.opacity=v;m.transparent=v<0.999;m.depthWrite=v>=0.999}
+function aplicarVisual(m){   // estado visual de una lectura; no toca la cámara ni el corte
+  for(const c of LITOS())opacidadRapida(capas[c.clave],m==="lit"?1:0.16);   // roca de contexto con transparencia moderada
+  for(const c of DOMS()){const o=capas[c.clave];o.visible=m==="dom";opacidadRapida(o,m==="dom"&&AISLADO&&AISLADO!==c.clave?0.2:1)}
+  capas.leyes.visible=m==="cu";
+  if(planoSec&&TAPAS[modoDeTapa(m)])planoSec.material.map=TAPAS[modoDeTapa(m)];
+}
+const modoDeTapa=m=>m;
+function setModo(m){
+  MODO=m;if(m!=="dom")AISLADO=null;
+  for(const c of M.capas){if(c.grupo==="Zonacion del exoskarn")fijarVisible(c.clave,false)}
+  aplicarVisual(m);for(const c of[...LITOS(),...DOMS()]){const r=document.querySelector(`input.op[data-k="${c.clave}"]`);if(r)r.value=capas[c.clave].material.opacity;const i=$("#c-"+c.clave);if(i)i.checked=capas[c.clave].visible}
+  const ic=$("#c-leyes");if(ic)ic.checked=capas.leyes.visible;
+  if(m!=="lit"&&capas.superficie.visible&&capas.superficie.material.opacity>0.4){fijarOpacidad("superficie",0.35);setModo.bajo=true}
+  else if(m==="lit"&&setModo.bajo){fijarOpacidad("superficie",1);setModo.bajo=false}   // el terreno recupera su opacidad
+  document.querySelectorAll(".modos button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.modo===m));
+  $("#panelCu").hidden=m!=="cu"&&!(COMP.on&&(COMP.izq==="cu"||COMP.der==="cu"));$("#etqSint").hidden=$("#panelCu").hidden;
+  trasCambioCapas();
+}
+function filtroCu(){
+  let lo=+$("#cuMin").value,hi=+$("#cuMax").value;if(lo>hi)[lo,hi]=[hi,lo];
+  const o=capas.leyes,P=o.userData.pos,C=o.userData.cu,m4=new THREE.Matrix4();let n=0;
+  for(let i=0;i<C.length;i++){const ok=C[i]>=lo&&C[i]<=hi;if(ok)n++;m4.makeScale(ok?1:0,ok?1:0,ok?1:0).setPosition(P[3*i],P[3*i+1],P[3*i+2]);o.setMatrixAt(i,m4)}
+  o.instanceMatrix.needsUpdate=true;const f=v=>v.toFixed(2).replace(".",",");$("#oCu").textContent=`${f(lo)}–${f(hi)} % Cu · ${n.toLocaleString("es-PE")} bloques`;o.userData.mostrados=n;
+}
+function vistaPrevia(){   // mismo punto de vista que las vistas previas de PyVista: desde el SE, elevada, mitad norte del bloque
+  const G=CORTE,esq=esquinasCaja(4650).filter(q=>G.n[0]*q[0]+G.n[1]*q[1]-G.off>=0);for(const P of[G.A,G.Ap])for(const z of[3500,4650])esq.push([P[0],P[1],z]);
+  encuadrar([0,300,4050],[3300,-4900,3350],esq,0.95,0.9);
+}
+function abrir3D(m){   // botón «Abrir en 3D» de la galería
+  if($("#v3d").hidden)$("#t-3d").click();if(ESC>=0)cerrarExpo();detenerAnimacion();salirTour(true);resaltarRampa(false);niebla(false);
+  $("#cOn").checked=true;$("#cAz").value=INICIO.corte.az;$("#cOff").value=INICIO.corte.off;actualizarCorte();
+  for(const c of LITOS())fijarVisible(c.clave,true);fijarVisible("superficie",true);fijarOpacidad("superficie",m==="lit"?1:0.35);luces("geo");marcarEncuadre("");
+  setModo(m);vuelo(()=>vistaPrevia(),1300);
+}
+function lupaContacto(){
+  if(!ANTERIOR)ANTERIOR={p:cam.position.clone(),t:ctrl.target.clone(),modo:MODO,corte:$("#cOn").checked};
+  niebla(false);if(!$("#cOn").checked){$("#cOn").checked=true;actualizarCorte()}
+  for(const c of LITOS())fijarVisible(c.clave,true);if(MODO!=="lit")setModo("lit");luces("geo");
+  vuelo(()=>encuadreContacto(),1500);$("#b-volver").hidden=false;aviso("Haz clic en una unidad para ver su mena, ganga y alteración");
+}
+function volverEncuadre(){
+  if(!ANTERIOR)return;const A=ANTERIOR;ANTERIOR=null;$("#b-volver").hidden=true;
+  if(A.modo!==MODO)setModo(A.modo);if(!A.corte){$("#cOn").checked=false;pintarTapa()}
+  vuelo(()=>{cam.position.copy(A.p);ctrl.target.copy(A.t);ctrl.update()},1300);
+}
+function comparar(on){
+  COMP.on=on;$("#b-comp").setAttribute("aria-pressed",on);for(const id of["#divisor","#compIzq","#compDer"])$(id).style.display=on?"block":"none";
+  if(on&&!$("#cOn").checked){$("#cOn").checked=true;actualizarCorte()}
+  if(on)for(const c of LITOS())fijarVisible(c.clave,true);
+  posicionarDivisor();setModo(MODO);pintarTapa();if(!on)aplicarVisual(MODO);
+}
+function posicionarDivisor(){const w=$("#lienzo3d").clientWidth;$("#divisor").style.left=(COMP.x*w)+"px";$("#compIzq").style.left=Math.max(8,COMP.x*w-180)+"px";$("#compDer").style.left=(COMP.x*w+12)+"px"}
+function renderizar(){
+  if(!COMP.on){rend.render(escena,cam);return}
+  const w=TAM[0],h=TAM[1],xs=Math.round(w*COMP.x);rend.setScissorTest(true);rend.setViewport(0,0,w,h);
+  aplicarVisual(COMP.izq);rend.setScissor(0,0,xs,h);rend.render(escena,cam);
+  aplicarVisual(COMP.der);rend.setScissor(xs,0,w-xs,h);rend.render(escena,cam);
+  rend.setScissorTest(false);aplicarVisual(MODO);
+}
+function prepararModos(){
+  document.querySelectorAll(".modos button").forEach(b=>b.onclick=()=>{if(b.dataset.modo!=="lit"&&!$("#cOn").checked&&!capas.intrusivo.visible){for(const c of LITOS())fijarVisible(c.clave,true);niebla(false)}setModo(b.dataset.modo)});
+  $("#escCu").innerHTML=LEYC.map(l=>`<i style="background:${l[1]}"></i>`).join("");
+  for(const id of["#cuMin","#cuMax"])$(id).addEventListener("input",filtroCu);filtroCu();
+  $("#qFal").onchange=()=>{for(const k of["falla_cabalgamiento","falla_valle"])fijarVisible(k,$("#qFal").checked);trasCambioCapas()};
+  $("#qSon").onchange=()=>{fijarVisible("sondajes",$("#qSon").checked);trasCambioCapas()};
+  $("#b-lupa").onclick=lupaContacto;$("#b-volver").onclick=volverEncuadre;$("#b-comp").onclick=()=>comparar(!COMP.on);
+  $("#selIzq").onchange=e=>{COMP.izq=e.target.value;setModo(MODO);pintarTapa()};$("#selDer").onchange=e=>{COMP.der=e.target.value;setModo(MODO);pintarTapa()};
+  const dv=$("#divisor");let arr=false;
+  dv.addEventListener("pointerdown",e=>{arr=true;dv.setPointerCapture(e.pointerId);e.stopPropagation()});
+  dv.addEventListener("pointermove",e=>{if(!arr)return;const r=$("#lienzo3d").getBoundingClientRect();COMP.x=Math.min(0.9,Math.max(0.1,(e.clientX-r.left)/r.width));posicionarDivisor()});
+  dv.addEventListener("pointerup",()=>{arr=false});
+  dv.addEventListener("keydown",e=>{if(e.key==="ArrowLeft"||e.key==="ArrowRight"){COMP.x=Math.min(0.9,Math.max(0.1,COMP.x+(e.key==="ArrowLeft"?-0.05:0.05)));posicionarDivisor()}});
+  new ResizeObserver(posicionarDivisor).observe($("#lienzo3d"));
+}
+// ===================================================================== EXPOSICIÓN: cinco escenas paso a paso
+let ESC=-1,ETP=-1,ETAPA_GEO="real",DEST_CONTACTO=false,PREGUNTA=null,flechasObj=null;
+const MAPA_ETAPA={real:{},previa:{1:6,2:6,3:6},intrusion:{2:1,3:6},endo:{3:6}};   // código mostrado en lugar del real (reconstrucción conceptual)
+const COLOR_REAL={};
+function etapaGeo(modo,contacto){
+  ETAPA_GEO=modo;DEST_CONTACTO=!!contacto;const L=M.leyenda.lito;
+  for(const l of L){const o=capas[l[1]];if(!COLOR_REAL[l[1]])COLOR_REAL[l[1]]=o.material.color.getHex();const m=MAPA_ETAPA[modo][l[0]];o.material.color.set(m?L[m-1][3]:COLOR_REAL[l[1]])}
+  pintarTapa();
+}
+function flechas(on){   // flechas esquemáticas de fluidos que cruzan el contacto desde el intrusivo (ilustrativas)
+  if(flechasObj){escena.remove(flechasObj);flechasObj.traverse(o=>{if(o.geometry)o.geometry.dispose()});flechasObj=null}
+  if(!on||!CORTE||!CORTE.contactoIntr)return;
+  const G=CORTE,sg=G.contactoIntr,grupo=new THREE.Group(),mat=new THREE.MeshBasicMaterial({color:0x38bdf8,depthTest:false,transparent:true,opacity:0.95});
+  const cand=[];for(let i=0;i<sg.length;i+=4){const t=(sg[i]+sg[i+2])/2,z=(sg[i+1]+sg[i+3])/2;if(z>3600&&z<4050)cand.push([t,z])}
+  cand.sort((a,b)=>a[1]-b[1]);const elegidos=[];for(const c of cand)if(elegidos.every(e=>Math.hypot(e[0]-c[0],e[1]-c[1])>110))elegidos.push(c);
+  const lit=(t,z)=>{const it=Math.round(t/RES),kz=Math.round((z-ZMIN)/RES);return G.raster.lit[kz*G.nt+it]||0};
+  for(const[t,z]of elegidos.slice(0,8)){const s=lit(t+20,z)>=3?1:lit(t-20,z)>=3?-1:0;if(!s)continue;
+    const L=150,dir=[s*0.92,0.38],o=[t-s*70,z-25];
+    const P=(tt,zz)=>new THREE.Vector3(...toV(G.A[0]+tt*G.d[0]-G.n[0]*4,G.A[1]+tt*G.d[1]-G.n[1]*4,zz));
+    const a=P(o[0],o[1]),b=P(o[0]+dir[0]*L,o[1]+dir[1]*L),v=new THREE.Vector3().subVectors(b,a),len=v.length();
+    const cil=new THREE.Mesh(new THREE.CylinderGeometry(6,6,len-38,10),mat),cono=new THREE.Mesh(new THREE.ConeGeometry(18,40,14),mat);
+    const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),v.clone().normalize());
+    cil.quaternion.copy(q);cil.position.copy(a).addScaledVector(v,(len-38)/2/len);cono.quaternion.copy(q);cono.position.copy(a).addScaledVector(v,(len-20)/len);
+    cil.renderOrder=cono.renderOrder=40;grupo.add(cil,cono);grupo.userData.etq=grupo.userData.etq||b.clone()}
+  flechasObj=grupo;escena.add(grupo);
+}
+function prepCorte(conFallas){
+  detenerAnimacion();salirTour(true);niebla(false);$("#cOn").checked=true;
+  if(+$("#cAz").value!==INICIO.corte.az||+$("#cOff").value!==INICIO.corte.off){$("#cAz").value=INICIO.corte.az;$("#cOff").value=INICIO.corte.off;actualizarCorte()}
+  for(const c of M.capas){if(c.grupo==="Litologias")fijarVisible(c.clave,true);if(["Zonacion del exoskarn","Dominios mineralizados","Leyes","Sondajes"].includes(c.grupo)||c.clave==="excavado")fijarVisible(c.clave,false);
+    if(c.grupo==="Fallas")fijarVisible(c.clave,!!conFallas&&c.clave!=="falla_hipotetica_H1")}
+  fijarVisible("superficie",true);fijarOpacidad("superficie",1);luces("geo");marcarEncuadre("");
+  if(MODO!=="lit")setModo("lit");else trasCambioCapas();
+}
+function encuadreContacto(){   // acercamiento al contacto sin perder ninguno de los dos lados
+  const G=CORTE,cod=M.leyenda.lito.find(l=>l[1]==="endoskarn")[0];let best=null;
+  for(let i=0;i<G.raster.lit.length;i++)if(G.raster.lit[i]===cod){const z=ZMIN+Math.floor(i/G.nt)*RES;if(z>3650&&z<3800){best=(i%G.nt)*RES;break}}
+  const t=best??G.L/2,P=[G.A[0]+t*G.d[0],G.A[1]+t*G.d[1],3740];
+  encuadrar([P[0]+150*G.d[0],P[1]+150*G.d[1],3870],[-G.n[0]*0.9+0.15,-G.n[1]*0.9-0.1,0.38],[[P[0]-450*G.d[0],P[1]-450*G.d[1],3640],[P[0]+750*G.d[0],P[1]+750*G.d[1],4030]]);
+}
+function modoCapas(m){
+  for(const c of M.capas){if(c.grupo==="Zonacion del exoskarn")fijarVisible(c.clave,m==="zon");if(c.grupo==="Dominios mineralizados")fijarVisible(c.clave,m==="dom");if(c.grupo==="Leyes")fijarVisible(c.clave,false)}
+  trasCambioCapas();
+}
+const MIN_DOM={   // 2-3 minerales por dominio, con la fuente de la ficha del modelo
+  dom_Mo:{mena:["molibdenita","calcopirita (escasa)"],ganga:["cuarzo","feldespato K","biotita"],f:"Mena: LS2005 p. 200 (molibdenita en el núcleo intrusivo y el endoskarn). Ganga: ficha del dominio (LS2005; PG)."},
+  dom_Cu:{mena:["calcopirita","pirita"],ganga:["granate","diópsido"],f:"Mena: LS2005 p. 201 (calcopirita, sulfuro de Cu predominante). Ganga: LS2005 pp. 197–198."},
+  dom_CuZn:{mena:["calcopirita","esfalerita"],ganga:["granate verde","diópsido"],f:"LS2005 p. 198 (granate verde con calcopirita-esfalerita; esfalerita 3–5 %) y p. 200 (Zn a menos de 70 m del contacto con la caliza)."},
+  dom_CuBn_Zn_Bi:{mena:["bornita","esfalerita","bismutinita"],ganga:["wollastonita","diópsido"],f:"LS2005 p. 198 (wollastonita con bornita y bornita-esfalerita) y p. 201 (≈8 % del Cu como bornita; minerales de Bi)."},
+  dom_AgPbZn:{mena:["galena","esfalerita","tennantita (con Ag)"],ganga:["calcita (mármol)"],f:"Mena: LS2005 p. 201 (vetas y mantos periféricos de Pb, Zn y Ag; Ag con galena y tennantita). Ganga: ficha del dominio (PG)."}
+};
+function htmlMinerales(k){const d=MIN_DOM[k],c=M.capas.find(c=>c.clave===k);
+  return`<div class="minerales"><div><b>Mena</b>${d.mena.join(", ")}</div><div><b>Ganga</b>${d.ganga.join(", ")}</div></div><p class="nota" style="margin:0">${esc(c.nombre)}: ${esc(d.f)} Forma del dominio: interpretada.</p>`}
+function verFalla(k){
+  if(k==="falla_hipotetica_H1")fijarVisible(k,true);trasCambioCapas();seleccionar(k);
+  const c=M.capas.find(c=>c.clave===k),F=c.ficha;
+  $("#expoExtra").innerHTML=(F.estado==="h"?`<div class="respuesta mal"><b>Hipotética.</b> ${esc(F.geometria)}</div>`:
+    `<div class="respuesta"><b>Documentado:</b> ${esc(F.dimensiones)}</div><div class="respuesta mal"><b>Interpretado:</b> ${esc(F.geometria)}</div>`);
+  dibujarExpoFallas();
+}
+function dibujarExpoFallas(){const pl=$("#expoPla"),se=$("#expoSec");pl.hidden=se.hidden=false;dibujarPlanta(pl,true);dibujarSeccion(se)}
+function iniciarPregunta(){
+  etapaGeo("intrusion",true);flechas(false);seleccionar(null);PREGUNTA={activa:true};
+  $("#expoExtra").innerHTML=`<div class="respuesta"><b>Haz clic en el modelo</b>, sobre la cara del corte, del lado donde crees que se forma el exoskarn.</div><button class="btn" id="b-omitir">Omitir la pregunta</button>`;
+  $("#b-omitir").onclick=()=>responderPregunta(null,true);
+}
+function responderPregunta(p,omitida){
+  if(!PREGUNTA)return;let txt;
+  if(!omitida&&!p){$("#expoExtra").firstElementChild.innerHTML="<b>Ese clic no cayó en la cara del corte.</b> Prueba de nuevo, sobre los colores del corte.";return}
+  if(!omitida){const G=CORTE,it=Math.round(tDe(p[0],p[1])/RES),kz=Math.round((p[2]-ZMIN)/RES),cod=(it>=0&&it<G.nt&&kz>=0&&kz<G.nz)?G.raster.lit[kz*G.nt+it]:0;
+    if(!cod){$("#expoExtra").firstElementChild.innerHTML="<b>Ese punto queda fuera de la roca.</b> Haz clic sobre los colores del corte.";return}
+    txt=cod>=3?"<b>Correcto.</b> ":"<b>No exactamente: ese es el lado intrusivo.</b> "}
+  else txt="<b>Respuesta.</b> ";
+  PREGUNTA={activa:false};etapaGeo("real",true);seleccionar("exoskarn");
+  $("#expoExtra").innerHTML=`<div class="respuesta${txt.includes("No ")?" mal":""}">${txt}El exoskarn se forma del lado de la roca carbonatada: los fluidos del intrusivo reemplazan la caliza por granate, diópsido y wollastonita; el endoskarn es el borde alterado del propio intrusivo (LS2005 pp. 195–198).</div>`;
+}
+const ESCENAS=[
+  {t:"El tajo actual",f:"Cotas del valle y crestas: LS2005 p. 193. Tajo, bancos y rampa: diseño ilustrativo.",
+   entrar(){etapaGeo("real");flechas(false)},
+   etapas:[
+    {b:"Vista aérea y rampa",x:"Vista aérea del tajo ilustrativo: bancos de 15 m, bermas de 10 m y una rampa de 35 m al 10 % (en naranja) que baja en espiral desde el acceso hasta el fondo, a 3860 m. El valle original estaba entre 4100 y 4200 m y las crestas llegan a 4640–5073 m.",
+     f(){vuelo(()=>encuadreTajo(),1200);resaltarRampa(true)}},
+    {b:"Revelar el subsuelo",x:"El plano A–A′ avanza y deja ver la geología bajo el tajo. El depósito rodea al intrusivo, bajo el fondo y las paredes del tajo; el tajo y la rampa quedan como referencia de escala.",
+     f(){resaltarRampa(true);revelarSubsuelo()}}]},
+  {t:"Antes de la mineralización",f:"Estratigrafía y cabalgamientos: LS2005 p. 191 (fig. 4) y p. 200. Stock: LS2005 p. 197. Edad ~10 Ma: ficha del intrusivo (LS2005; PG). Secuencia: reconstrucción conceptual.",
+   entrar(){resaltarRampa(false);flechas(false);prepCorte(false);vuelo(()=>vistaFrente(),1400)},
+   etapas:[
+    {b:"Roca hospedante",x:"Reconstrucción conceptual: antes de la intrusión, las calizas de la Fm. Jumasha y las margas de la Fm. Celendín ocupaban todo este espacio, apiladas por cabalgamientos.",
+     f(){etapaGeo("previa",false)}},
+    {b:"Llega el intrusivo",x:"Hace unos 10 millones de años se emplazó el stock de pórfido de cuarzo-monzonita (rosado; 800 × 750 m a la cota 3900). La línea clara es el contacto con las calizas: ahí los fluidos del magma reaccionan con los carbonatos, y ahí se formará el skarn que aloja el cobre y el zinc.",
+     f(){etapaGeo("intrusion",true)}}]},
+  {t:"Cómo se forma el skarn",f:"Zonación desde el intrusivo: LS2005 p. 195 (figs. 5 y 6). Endoskarn: LS2005 p. 196. Caparazón de 300–400 m: LS2005 p. 197. Flechas de fluidos: esquema ilustrativo.",
+   entrar(){resaltarRampa(false);prepCorte(false);vuelo(()=>encuadreContacto(),1700)},
+   etapas:[
+    {b:"1. Contacto",x:"Acercamiento al contacto en la cara A–A′: a un lado el intrusivo (rosado), al otro la roca carbonatada (azul). Arriba siguen los bancos del tajo como referencia.",
+     f(){etapaGeo("intrusion",true);flechas(false)}},
+    {b:"2. Endoskarn",x:"Los fluidos calientes que salen del intrusivo (flechas esquemáticas) alteran su propio borde: se forma el endoskarn de granate pardo, del lado intrusivo del contacto.",
+     f(){etapaGeo("endo",true);flechas(true)}},
+    {b:"3. Exoskarn",x:"Al cruzar el contacto, los fluidos reemplazan la caliza por granate, diópsido y wollastonita: es el exoskarn, un caparazón de 300 a 400 m del lado de la roca carbonatada. El endoskarn sigue a la vista.",
+     f(){etapaGeo("real",true);flechas(true)}},
+    {b:"Pregunta",x:"¿En qué lado se forma el exoskarn? Elige haciendo clic en el modelo. Puedes omitir la pregunta.",
+     f(){iniciarPregunta()}}]},
+  {t:"Dónde están los minerales",f:"Zonación metálica: LS2005 pp. 200–201 (figs. 9 y 10); minerales por dominio: ver la nota de cada dominio. Formas de zonas y dominios: interpretadas.",
+   entrar(){resaltarRampa(false);flechas(false);etapaGeo("real");prepCorte(false);vuelo(()=>vistaFrente(),1400)},
+   etapas:[
+    {b:"Litología",x:"El mismo corte coloreado por litología: intrusivo, endoskarn, exoskarn y rocas hospedantes.",f(){modoCapas("lit");seleccionar(null)}},
+    {b:"Zonación del exoskarn",x:"Desde el contacto hacia fuera: granate pardo, granate verde y wollastonita-diópsido.",f(){modoCapas("zon");seleccionar(null)}},
+    {b:"Dominios mineralizados",x:"Del centro hacia fuera: núcleo de Mo, zona de Cu, halo Cu-Zn, zona de bornita y periferia Ag-Pb-Zn. Elige un dominio para ver sus límites y sus minerales.",
+     f(){modoCapas("dom");seleccionar(null);
+       $("#expoExtra").innerHTML=`<div class="doms">${M.leyenda.dominio.map(d=>`<button data-d="${d[1]}"><span class="sw" style="background:${d[3]}"></span>${esc(d[2])}</button>`).join("")}</div><div id="expoMin"></div>`;
+       document.querySelectorAll(".doms button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".doms button").forEach(x=>x.setAttribute("aria-pressed",x===b));seleccionar(b.dataset.d);$("#expoMin").innerHTML=htmlMinerales(b.dataset.d)})}}]},
+  {t:"Una sección, tres lecturas",f:"Litologías y zonación: LS2005 pp. 195–198. Dominios metálicos: LS2005 pp. 200–201 (figs. 9 y 10) y PG. Ley de Cu: SINTÉTICA, sin fuente; formas de dominios interpretadas.",
+   entrar(){resaltarRampa(false);flechas(false);etapaGeo("real");prepCorte(false);vuelo(()=>encuadreContacto(),1500)},
+   salir(){setModo("lit")},
+   etapas:[
+    {b:"Litologías",x:"El mismo punto del corte leído como rocas: intrusivo (rosado), endoskarn (rojo), exoskarn (verde) y calizas (azul). Responde a la pregunta «¿qué roca hay aquí?».",f(){setModo("lit")}},
+    {b:"Dominios mineralizados",x:"El mismo punto leído por metales: núcleo de Mo en el intrusivo, Cu en el skarn, halo Cu-Zn hacia la caliza y Ag-Pb-Zn en la periferia. Los límites son interpretados; la roca queda atenuada como contexto.",f(){setModo("dom")}},
+    {b:"Ley de Cu sintética",x:"El mismo punto con bloques de 30 m coloreados por ley de Cu. Es una capa SINTÉTICA de demostración: muestra cómo se vería un modelo de bloques, no datos de Antamina.",f(){setModo("cu")}}]},
+  {t:"Cómo se leen las fallas",f:"Cabalgamiento: LS2005 p. 191 (fig. 4) y p. 200; R1999. Falla del Valle: LS2005 p. 200 (figs. 7 y 8); buzamiento de M2018 (resumen). H-1: hipotética.",
+   entrar(){resaltarRampa(false);flechas(false);etapaGeo("real");prepCorte(true);modoCapas("lit");vuelo(()=>vistaFrente(),1400)},
+   salir(){fijarVisible("falla_hipotetica_H1",false);trasCambioCapas();$("#expoPla").hidden=$("#expoSec").hidden=true},
+   etapas:[
+    {b:"Cabalgamiento",x:"Superficie 3D resaltada, traza en planta a 4300 m y línea de intersección con el perfil A–A′.",f(){fijarVisible("falla_hipotetica_H1",false);verFalla("falla_cabalgamiento")}},
+    {b:"Falla del Valle",x:"Superficie 3D resaltada, traza en planta a 4300 m y línea de intersección con el perfil A–A′.",f(){fijarVisible("falla_hipotetica_H1",false);verFalla("falla_valle")}},
+    {b:"H-1 (demostración hipotética)",x:"Falla inventada para mostrar cómo el modelo corta y desplaza las unidades. No está en las fuentes.",f(){verFalla("falla_hipotetica_H1")}}]}
+];
+function abrirExpo(i){
+  if(i<0||i>=ESCENAS.length)return;if($("#v3d").hidden)$("#t-3d").click();
+  if(ESC>=0&&ESC!==i&&ESCENAS[ESC].salir)ESCENAS[ESC].salir();
+  PREGUNTA=null;$("#expoExtra").innerHTML="";$("#expoPla").hidden=$("#expoSec").hidden=true;resaltarFallas([]);
+  ESC=i;const E=ESCENAS[i];$("#panel").classList.add("modo-expo");$("#expo").open=true;$("#b-tour").setAttribute("aria-pressed",true);
+  $("#expoN").textContent=`escena ${i+1} de ${ESCENAS.length}`;$("#expoT").textContent=E.t;$("#expoF").textContent="Fuentes: "+E.f;
+  $("#expoEtapas").innerHTML=E.etapas.map((e,j)=>`<button data-j="${j}">${esc(e.b)}</button>`).join("");
+  document.querySelectorAll("#expoEtapas button").forEach(b=>b.onclick=()=>irEtapa(+b.dataset.j));
+  $("#expoAnt").disabled=i===0;$("#expoSig").disabled=i===ESCENAS.length-1;
+  E.entrar();irEtapa(0);
+}
+function irEtapa(j){const E=ESCENAS[ESC];if(!E)return;ETP=j;PREGUNTA=null;
+  document.querySelectorAll("#expoEtapas button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.j===j));
+  if(!(ESC===3&&j===2))$("#expoExtra").innerHTML="";$("#expoX").textContent=E.etapas[j].x;E.etapas[j].f();}
+function entrarPresentacion(){
+  document.body.classList.add("presentacion");document.body.classList.remove("sin-panel");$("#b-present").textContent="Volver a explorar";$("#b-present").setAttribute("aria-pressed",true);
+  if($("#v3d").hidden)$("#t-3d").click();$("#leyPanel").open=true;try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}
+  setTimeout(redimensionar,50);abrirExpo(0);
+}
+function salirPresentacion(){
+  document.body.classList.remove("presentacion");$("#b-present").textContent="Presentación";$("#b-present").setAttribute("aria-pressed",false);
+  try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}cerrarExpo();setTimeout(redimensionar,50);
+}
+function cerrarExpo(){
+  if(ESC<0)return;if(ESCENAS[ESC].salir)ESCENAS[ESC].salir();ESC=-1;PREGUNTA=null;flechas(false);etapaGeo("real");resaltarFallas([]);
+  $("#panel").classList.remove("modo-expo");$("#b-tour").setAttribute("aria-pressed",false);aviso("Exploración libre");
+  if(document.body.classList.contains("presentacion")){document.body.classList.remove("presentacion");$("#b-present").textContent="Presentación";$("#b-present").setAttribute("aria-pressed",false);try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}setTimeout(redimensionar,50)}
+}
+// ---- recorrido de tres paradas
+let PARADA=-1;
+const PARADAS=[
+  {t:"Tajo y rampa",x:"Tajo ilustrativo: bancos de 15 m con caras de 65° y bermas de 10 m. La rampa (en amarillo) baja en espiral al 10 % desde el acceso hasta el fondo, a 3860 m. Trazado y dimensiones supuestos.",
+   f:()=>{encuadreTajo();resaltarRampa(true);seleccionar(null)}},
+  {t:"Contacto intrusivo–skarn",x:"En la cara A–A′, el endoskarn (rojo) queda del lado del intrusivo (rosado) y el exoskarn (verde) del lado de la caliza (azul). El caparazón de skarn mide 300–400 m (Lipten y Smith 2005, p. 197); la forma del contacto es interpretada.",
+   f:()=>{resaltarRampa(false);$("#cAz").value=INICIO.corte.az;$("#cOff").value=INICIO.corte.off;actualizarCorte();encuadreGeologia();fijarOpacidad("superficie",1);
+     const G=CORTE,cod=M.leyenda.lito.find(l=>l[1]==="endoskarn")[0];let best=null;
+     for(let i=0;i<G.raster.lit.length;i++)if(G.raster.lit[i]===cod){const z=ZMIN+Math.floor(i/G.nt)*RES;if(z>3650&&z<3800){best=(i%G.nt)*RES;break}}
+     const t=best??G.L/2,P=[G.A[0]+t*G.d[0],G.A[1]+t*G.d[1],3740];
+     encuadrar([P[0]+150*G.d[0],P[1]+150*G.d[1],3840],[-G.n[0]*0.9+0.15,-G.n[1]*0.9-0.1,0.38],[[P[0]-450*G.d[0],P[1]-450*G.d[1],3560],[P[0]+750*G.d[0],P[1]+750*G.d[1],4000]]);seleccionar("endoskarn")}},
+  {t:"Fallas",x:"Cabalgamiento rampa-rellano (amarillo) y Falla del Valle NE-SW (rojo): sus superficies y su traza en el corte están resaltadas. Ambas geometrías son interpretadas (Lipten y Smith 2005, pp. 191 y 200). La falla H-1 es hipotética y queda apagada.",
+   f:()=>{resaltarRampa(false);encuadreGeologia();fijarOpacidad("superficie",0.35);seleccionar(null);resaltarFallas(["falla_cabalgamiento","falla_valle"])}}
+];
+function irParada(i){
+  if(i<0||i>=PARADAS.length)return;detenerAnimacion();if($("#v3d").hidden)$("#t-3d").click();PARADA=i;const P=PARADAS[i];
+  resaltarFallas([]);P.f();$("#tour").classList.add("on");$("#tourT").textContent=`${i+1}. ${P.t}`;$("#tourX").textContent=P.x;
+  $("#tourN").textContent=`Parada ${i+1} de ${PARADAS.length}`;$("#tourAnt").disabled=i===0;$("#tourSig").disabled=i===PARADAS.length-1;$("#b-tour").setAttribute("aria-pressed",true);
+}
+function salirTour(silencio){if(PARADA<0)return;PARADA=-1;$("#tour").classList.remove("on");$("#b-tour").setAttribute("aria-pressed",false);resaltarFallas([]);if(!silencio)aviso("Exploración libre")}
+function actualizarEscala(){
+  const c=$("#lienzo3d"),h=c.clientHeight;if(!h)return;const dist=cam.position.distanceTo(ctrl.target),ppm=h/(2*dist*Math.tan(cam.fov*Math.PI/360));
+  const L=[50,100,250,500,1000,2000].find(l=>l*ppm>=70)||2000;$("#escala i").style.width=Math.round(L*ppm)+"px";$("#escala span").textContent=`${L} m (centro de la vista)`;
+}
+function marcasA(){
+  const G=CORTE;if(!G)return;const on=$("#cOn").checked;
+  for(const[id,P]of[["#mA",G.A],["#mAp",G.Ap]]){const el=$(id);
+    const v=new THREE.Vector3(...toV(P[0],P[1],cotaSup(P[0],P[1])+60)).project(cam);
+    if(!on||v.z>1||Math.abs(v.x)>1.05||Math.abs(v.y)>1.05){el.style.display="none";continue}
+    const c=$("#lienzo3d");el.style.display="block";el.style.left=((v.x+1)/2*c.clientWidth)+"px";el.style.top=((1-v.y)/2*c.clientHeight)+"px"}
+}
+
+// ---------------------------------------------------------------- selección y fichas
+function clic3D(e){
+  const r=rend.domElement.getBoundingClientRect(),m=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
+  raycaster.setFromCamera(m,cam);
+  if(PREGUNTA&&PREGUNTA.activa){const h=planoSec?raycaster.intersectObject(planoSec,false)[0]:null;responderPregunta(h?[h.point.x,-h.point.z,h.point.y+Z0]:null);return}
+  const objs=objetosClic.filter(o=>o.visible&&!(o.userData.capa.grupo==="Litologias"&&o.material.opacity<0.5));if(planoSec&&planoSec.visible)objs.push(planoSec);
+  let hits=raycaster.intersectObjects(objs,false);
+  if($("#cOn").checked)hits=hits.filter(h=>h.object===planoSec||planoCorte.distanceToPoint(h.point)>=-1);
+  if(!hits.length){seleccionar(null);return}
+  const h=hits[0],p=[h.point.x,-h.point.z,h.point.y+Z0];
+  if(h.object===planoSec){const t=tDe(p[0],p[1]),k=fallaEnCorte(t,p[2],25)||unidadEnCorte(t,p[2],modoTapa());if(k)seleccionar(k,p);return}
+  seleccionar(h.object.userData.capa.clave,p);
+}
+function resaltarFallas(claves){
+  for(const c of M.capas)if(c.grupo==="Fallas"){const o=capas[c.clave],m=o.material,on=claves.includes(c.clave);
+    if(on){RESALT.add(c.clave);m.emissive.setHex(0x8a5a00);m.transparent=true;m.opacity=0.8;m.depthTest=false;o.renderOrder=20}
+    else{RESALT.delete(c.clave);m.emissive.setHex(0x000000);m.depthTest=true;o.renderOrder=0;fijarOpacidad(c.clave,o.userData.op??INICIO.opacidad[c.clave]??0.55)}
+    m.needsUpdate=true}
+  pintarTapa();
+}
+function seleccionar(k,p){
+  if(MODO==="dom"&&!COMP.on){AISLADO=k&&k.startsWith("dom_")?k:null;aplicarVisual("dom")}
+  const c0=M.capas.find(c=>c.clave===k);
+  if(RESALT.size&&!(c0&&c0.grupo==="Fallas"&&RESALT.has(k)&&RESALT.size===1))resaltarFallas(c0&&c0.grupo==="Fallas"?[k]:[]);
+  else if(c0&&c0.grupo==="Fallas")resaltarFallas([k]);
+  if(SEL&&capas[SEL]&&capas[SEL].material.emissive&&!RESALT.has(SEL))capas[SEL].material.emissive.setHex(0x000000);
+  SEL=k;document.querySelectorAll(".capa.sel").forEach(e=>e.classList.remove("sel"));
+  if(!k){$("#info").innerHTML='<p class="nota">Haz clic sobre una unidad, una falla o la cara del corte.</p>';$("#infoSec").innerHTML='<b class="t">Ficha de la unidad</b><p class="nota">Haz clic sobre una unidad.</p>';dibujarSeccion();return}
+  const o=capas[k];if(o&&o.material.emissive)o.material.emissive.setHex(0x6b4300);
+  const fila=document.querySelector(`.capa[data-k="${k}"]`);if(fila)fila.classList.add("sel");
+  const h=htmlFicha(M.capas.find(c=>c.clave===k),p);$("#info").innerHTML=h;$("#infoSec").innerHTML=h;
+  if(ESC<0){document.body.classList.remove("sin-panel");$("#b-panel").setAttribute("aria-pressed",true);$("#secFicha").open=true;$("#secFicha").scrollIntoView({block:"nearest"})}if(CORTE&&$("#cOn").checked)pintarTapa();
+  dibujarSeccion();
+}
+function htmlFicha(c,p){
+  const a=c.attr||{},F=c.ficha||{},est=F.estado||"i";
+  const etiqueta={litologia:"Litología",mena:"Mena",ganga:"Ganga",alteracion:"Alteración",edad:"Edad",estado:"Estado",rumbo:"Rumbo",buzamiento:"Buzamiento",relacion:"Relación con el depósito",fuente:"Fuente"};
+  let h=`<span class="etq ${est} estado">${TXT[est]}</span><b class="t">${esc(c.nombre)}</b><dl>`;
+  for(const k in etiqueta){const v=a[k]||(k==="litologia"?F.litologia:null);if(v)h+=`<dt>${etiqueta[k]}</dt><dd>${esc(v)}</dd>`}
+  if(p)h+=`<dt>Punto</dt><dd style="font-family:var(--f-mono)">x ${p[0].toFixed(0)} · y ${p[1].toFixed(0)} · z ${p[2].toFixed(0)} m (local)</dd>`;
+  h+="</dl>";
+  if(typeof MIN_DOM!=="undefined"&&MIN_DOM[c.clave]){const d=MIN_DOM[c.clave];h+=`<div class="minerales" style="margin-top:8px"><div><b>Mena</b>${d.mena.join(", ")}</div><div><b>Ganga</b>${d.ganga.join(", ")}</div></div><p class="nota" style="margin:4px 0 0">${esc(d.f)}</p>`}
+  if(F.mineral)h+=`<div class="resp"><b>Fuente de la asociación mineral:</b> ${esc(F.mineral)}</div>`;
+  if(F.dimensiones)h+=`<div class="resp"><b>Fuente de la orientación o las dimensiones:</b> ${esc(F.dimensiones)}</div>`;
+  if(F.geometria&&est!=="h")h+=`<div class="interp"><b>Carácter de la geometría:</b> ${esc(F.geometria)}</div>`;
+  if(F.sintetico)h+=`<div class="sint"><b>Sintético:</b> ${esc(F.sintetico)}</div>`;
+  if(est==="h")h+=`<div class="sint"><b>Carácter de la geometría: Hipotética.</b> ${esc(F.geometria||"")}</div>`;
+  return h;
+}
+
+// ---------------------------------------------------------------- panel de capas
+function construirPanel(){
+  const grupos={};for(const c of M.capas)(grupos[c.grupo]=grupos[c.grupo]||[]).push(c);
+  const orden=["Tajo","Litologias","Zonacion del exoskarn","Dominios mineralizados","Fallas","Sondajes","Leyes"];
+  const nombres={Tajo:"Tajo",Litologias:"Roca hospedante, intrusivo y skarn","Zonacion del exoskarn":"Zonación del exoskarn","Dominios mineralizados":"Dominios mineralizados (forma interpretativa)",Fallas:"Fallas",Sondajes:"Sondajes",Leyes:"Leyes"};
+  let h="";
+  for(const g of orden){const cs=grupos[g];if(!cs)continue;const gid="g"+g.replace(/\W/g,"");
+    h+=`<div class="grupo"><h3>${nombres[g]}<label><input type="checkbox" id="${gid}" data-g="${g}"> todo</label></h3>`;
+    for(const c of cs){const est=c.ficha.estado,sw=c.color?`<span class="sw" style="background:${c.color}"></span>`:`<span class="sw" style="background:linear-gradient(90deg,#2e7d32,#f5e23b,#c62828)"></span>`;
+      const op=(c.tipo==="compartida"||c.tipo==="malla")?`<input type="range" class="op" data-k="${c.clave}" min="0" max="1" step="0.05" value="1" title="Opacidad" aria-label="Opacidad de ${esc(nombreCorto(c))}">`:"<span></span>";
+      h+=`<div class="capa" data-k="${c.clave}"><label><input type="checkbox" id="c-${c.clave}" data-k="${c.clave}">${sw}<span class="n">${esc(nombreCorto(c))}</span></label><span class="etq ${est}">${TXT[est]}</span>${op}</div>`}
+    h+="</div>"}
+  $("#capas").innerHTML=h;
+  document.querySelectorAll("#capas input[type=checkbox][data-k]").forEach(i=>i.onchange=()=>{fijarVisible(i.dataset.k,i.checked);trasCambioCapas()});
+  document.querySelectorAll("#capas input[data-g]").forEach(i=>i.onchange=()=>{
+    for(const c of M.capas)if(c.grupo===i.dataset.g)fijarVisible(c.clave,i.checked);trasCambioCapas()});
+  document.querySelectorAll("#capas input.op").forEach(i=>i.oninput=()=>fijarOpacidad(i.dataset.k,+i.value));
+}
+function fijarVisible(k,v){capas[k].visible=v;const i=$("#c-"+k);if(i)i.checked=v}
+function trasCambioCapas(){
+  if(CORTE){dibujarPlanta($("#cPla"),false);dibujarPlanta($("#cMini"),true)}
+  document.querySelectorAll("#capas input[data-g]").forEach(i=>{const cs=M.capas.filter(c=>c.grupo===i.dataset.g);i.checked=cs.every(c=>capas[c.clave].visible);i.indeterminate=!i.checked&&cs.some(c=>capas[c.clave].visible)});
+  colorearSondajes();leyenda3D();pintarTapa();dibujarSeccion();
+}
+function nombreCorto(c){return c.nombre.replace(" (porfido de cuarzo-monzonita)","").replace("Calizas Fm. ","Fm. ").replace(" (calizas margosas)","").replace("Exoskarn de ","").replace(" (proximal)","").replace(" (distal)","").replace("SINTETICOS","sintéticos").replace("SINTETICA","sintética")}
+function leyenda3D(){
+  const it=(col,txt,etq)=>`<div class="it"><span class="sw" style="background:${col}"></span>${esc(txt)}${etq?` <span class="etq ${etq[0]}">${etq[1]}</span>`:""}</div>`;
+  let h="";const m=typeof MODO!=="undefined"?MODO:"lit",cara=$("#cOn").checked;
+  const conRoca=LITOS().some(c=>capas[c.clave].visible);
+  if(m==="lit"&&conRoca){h+=`<h4>Litologías${cara?" · cara del corte en colores planos":""}</h4>`+LITOS().map(c=>it(c.color,nombreCorto(c),c.ficha.estado==="f"?null:["i","geometría interpretada"])).join("");
+    const zs=M.capas.filter(c=>c.grupo==="Zonacion del exoskarn"&&capas[c.clave].visible);if(zs.length)h+=`<h4>Zonación del exoskarn</h4>`+zs.map(c=>it(c.color,nombreCorto(c),["i","interpretado"])).join("")}
+  if(m==="dom")h+=`<h4>Dominios mineralizados · forma interpretativa</h4>`+DOMS().map(c=>it(c.color,nombreCorto(c))).join("")+`<div class="it" style="color:var(--muted)">Roca hospedante e intrusivo atenuados como contexto. Clic en un dominio para aislarlo.</div>`;
+  if(m==="cu")h+=`<h4>Ley de Cu sintética (% Cu)</h4><div class="it" style="color:var(--muted)">Bloques de 30 m generados por el script: no son datos ni estimaciones de Antamina.</div>`;
+  const fs=M.capas.filter(c=>c.grupo==="Fallas"&&capas[c.clave].visible);
+  if(fs.length)h+=`<h4>Fallas</h4>`+fs.map(c=>it(c.color,nombreCorto(c),c.ficha.estado==="h"?["h","hipotética"]:["i","interpretada"])).join("");
+  if(capas.sondajes.visible)h+=`<h4>Sondajes</h4>`+it("#777","24 sondajes sintéticos",["s","sintético"]);
+  if(capas.superficie.visible)h+=`<h4>Superficie</h4>`+it("#b0966b","Rampa: camino afirmado (35 m al 10 %)")+it("#8d8579","Caras de banco y bermas (15 m / 10 m)")+it("#8a8a6c","Terreno natural");
+  h+=`<div class="pie">Coordenadas locales en metros. Relieve, tajo y texturas son ilustrativos: procedurales, sin topografía ni imágenes georreferenciadas.</div>`;
+  $("#leyCont").innerHTML=h;
+}
+
+// ---------------------------------------------------------------- CORTE: geometría común para 3D, planta y perfil
+function geometriaCorte(az,off){
+  const r=az*Math.PI/180,d=[Math.sin(r),Math.cos(r)],n=[-Math.cos(r),Math.sin(r)],p0=[off*n[0],off*n[1]],B=M.caja;
+  let u0=-1e9,u1=1e9;
+  for(const[k,lo,hi]of[[0,B.xmin,B.xmax],[1,B.ymin,B.ymax]]){if(Math.abs(d[k])<1e-9)continue;const a=(lo-p0[k])/d[k],b=(hi-p0[k])/d[k];u0=Math.max(u0,Math.min(a,b));u1=Math.min(u1,Math.max(a,b))}
+  const A=[p0[0]+u0*d[0],p0[1]+u0*d[1]],Ap=[p0[0]+u1*d[0],p0[1]+u1*d[1]],L=u1-u0;
+  return{az,off,d,n,p0,A,Ap,L,nt:Math.floor(L/RES)+1,nz:Math.round((ZMAX-ZMIN)/RES)+1};
+}
+const tDe=(x,y)=>(x-CORTE.A[0])*CORTE.d[0]+(y-CORTE.A[1])*CORTE.d[1];
+function cortarTri(P,a,b,c,sd,out){
+  const sa=sd[a],sb=sd[b],sc=sd[c];if((sa<0&&sb<0&&sc<0)||(sa>=0&&sb>=0&&sc>=0))return false;
+  let k=0;const pts=[a,b,b,c,c,a];
+  for(let e=0;e<6;e+=2){const i=pts[e],j=pts[e+1],si=sd[i],sj=sd[j];
+    if((si<0)!==(sj<0)){const f=si/(si-sj),x=P[3*i]+f*(P[3*j]-P[3*i]),y=P[3*i+1]+f*(P[3*j+1]-P[3*i+1]),z=P[3*i+2]+f*(P[3*j+2]-P[3*i+2]);out.push(tDe(x,y),z);k++}}
+  if(k!==2){out.length-=2*k;return false}return true;
+}
+function distFirmada(P){const G=CORTE,sd=new Float32Array(P.length/3);for(let i=0;i<sd.length;i++)sd[i]=G.n[0]*P[3*i]+G.n[1]*P[3*i+1]-G.off;return sd}
+function calcularCorte(ligero){
+  const G=CORTE,nt=G.nt,nz=G.nz;G.segs={};G.contactos={};G.raster={};G.cnt=new Uint8Array(nt*nz);G.ligero=!!ligero;
+  const mt=modoTapa(),usa=m=>mt===m||(COMP.on&&(COMP.izq===m||COMP.der===m)),conj=ligero?["lit",...(mt==="zon"?["zon"]:[]),...(usa("dom")?["dom"]:[])]:Object.keys(SETS);
+  for(const k of["zon","dom"])if(!conj.includes(k))G.raster[k]=new Uint8Array(nt*nz),G.segs[k]={},G.contactos[k]=[];
+  const ci=[],cp=[];G.contactoIntr=ci;G.contactoPar=cp;   // contacto intrusivo(+endoskarn) / roca de caja(+exoskarn)
+  for(const k of conj){const S=SETS[k],P=S.P,Q=S.Q,BL=S.BL,sd=distFirmada(P),por={},con=[],tmp=[];
+    const nq=Q.length/4,añadir=(q)=>{const l1=BL[2*q],l2=BL[2*q+1];
+        for(const l of[l1,l2])if(l){const arr=por[l]||(por[l]=[]);arr.push(tmp[0],tmp[1],tmp[2],tmp[3])}
+        if(l1&&l2)con.push(tmp[0],tmp[1],tmp[2],tmp[3]);
+        if(k==="lit"&&l1&&l2){cp.push(l1,l2,tmp[0],tmp[1],tmp[2],tmp[3]);if((l1<=2)!==(l2<=2))ci.push(tmp[0],tmp[1],tmp[2],tmp[3])}};
+    for(let q=0;q<nq;q++){const a=Q[4*q],b=Q[4*q+1],c=Q[4*q+2],d=Q[4*q+3],sa=sd[a]<0,sb=sd[b]<0,sc=sd[c]<0,sdd=sd[d]<0;
+      if(sa===sb&&sb===sc&&sc===sdd)continue;
+      tmp.length=0;if(cortarTri(P,a,b,c,sd,tmp))añadir(q);
+      tmp.length=0;if(cortarTri(P,a,c,d,sd,tmp))añadir(q)}
+    G.segs[k]=por;G.contactos[k]=con;
+    const R=new Uint8Array(nt*nz);for(const cod in por)rellenar(por[cod],+cod,R,k==="lit"?G.cnt:null);G.raster[k]=R}
+  // fallas y superficie: mismas mallas que en 3D
+  G.fallas=[];for(const c of M.capas)if(c.grupo==="Fallas"){const sd=distFirmada(c.P),s=[],tmp=[];
+    for(let t=0;t<c.I.length;t+=3){tmp.length=0;if(cortarTri(c.P,c.I[t],c.I[t+1],c.I[t+2],sd,tmp))s.push(...tmp)}G.fallas.push({c,s})}
+  if(ligero){const s=[];let zp=cotaSup(G.A[0],G.A[1]);for(let t=4;t<=G.L;t+=4){const z=cotaSup(G.A[0]+t*G.d[0],G.A[1]+t*G.d[1]);s.push(t-4,zp,t,z);zp=z}G.sup=s}   // misma rejilla de 4 m
+  else{const c=M.capas.find(c=>c.clave==="superficie"),sd=distFirmada(c.P),s=[],tmp=[];
+    for(let t=0;t<c.I.length;t+=3){const a=c.I[t],b=c.I[t+1],d=c.I[t+2];if((sd[a]<0)===(sd[b]<0)&&(sd[b]<0)===(sd[d]<0))continue;tmp.length=0;if(cortarTri(c.P,a,b,d,sd,tmp))s.push(...tmp)}G.sup=s}
+  G.rampa=[];for(let i=0;i+7<RAMPA.length;i+=4){if(RAMPA[i+3]<0.5||RAMPA[i+7]<0.5)continue;
+    const s1=G.n[0]*RAMPA[i]+G.n[1]*RAMPA[i+1]-G.off,s2=G.n[0]*RAMPA[i+4]+G.n[1]*RAMPA[i+5]-G.off;
+    if((s1<0)!==(s2<0)){const f=s1/(s1-s2),x=RAMPA[i]+f*(RAMPA[i+4]-RAMPA[i]),y=RAMPA[i+1]+f*(RAMPA[i+5]-RAMPA[i+1]);G.rampa.push([tDe(x,y),cotaSup(x,y)])}}
+  G.premina=[];for(let t=0;t<=G.L;t+=10)G.premina.push([t,bilin(M.planta.preA,G.A[0]+t*G.d[0],G.A[1]+t*G.d[1])]);
+  // ley de Cu SINTÉTICA (rejilla de 30 m) solo donde hay roca
+  const R=M.rejilla_cu,cu=new Float32Array(nt*nz).fill(-1),L=G.raster.lit;
+  if(!ligero||usa("cu"))for(let kz=0;kz<nz;kz++)for(let it=0;it<nt;it++){const i=kz*nt+it;if(!L[i])continue;const t=it*RES,x=G.A[0]+t*G.d[0],y=G.A[1]+t*G.d[1],z=ZMIN+kz*RES;
+    const ix=Math.round((x-R.x0)/R.paso),iy=Math.round((y-R.y0)/R.paso),iz=Math.round((z-R.z0)/R.paso);
+    if(ix<0||iy<0||iz<0||ix>=R.nx||iy>=R.ny||iz>=R.nz)continue;const v=R.A[(iz*R.ny+iy)*R.nx+ix];if(v>=0)cu[i]=v/100}
+  G.cu=cu;
+  // solo para el dibujo: el relleno se prolonga hasta la superficie (<= 30 m) para cubrir el margen de 8 m de los sólidos
+  const ext=arr=>{const out=arr.slice();for(let it=0;it<nt;it++){let top=-1;for(let kz=nz-1;kz>=0;kz--)if(L[kz*nt+it]){top=kz;break}
+      if(top<0||!arr[top*nt+it])continue;const t=it*RES,zs=cotaSup(G.A[0]+t*G.d[0],G.A[1]+t*G.d[1]),kmax=Math.min(nz-1,Math.floor((zs-ZMIN)/RES));
+      if((kmax-top)*RES>30)continue;for(let k=top+1;k<=kmax;k++)out[k*nt+it]=arr[top*nt+it]}return out};
+  G.vis={lit:ext(G.raster.lit),zon:ext(G.raster.zon),dom:ext(G.raster.dom)};
+  // sondajes: tramos a ±80 m proyectados y puntos donde atraviesan el plano
+  const s=M.capas.find(c=>c.clave==="sondajes"),p=s.P,a=s.A;G.son=[];G.perf=[];
+  for(let q=0;q<a.length/3;q++){const i=6*q,s1=G.n[0]*p[i]+G.n[1]*p[i+1]-G.off,s2=G.n[0]*p[i+3]+G.n[1]*p[i+4]-G.off;
+    if(Math.abs(s1)<=80)G.son.push([tDe(p[i],p[i+1]),p[i+2],tDe(p[i+3],p[i+4]),p[i+5],a[3*q],a[3*q+2]]);
+    if((s1<0)!==(s2<0)){const f=s1/(s1-s2);G.perf.push([tDe(p[i]+f*(p[i+3]-p[i]),p[i+1]+f*(p[i+4]-p[i+1])),p[i+2]+f*(p[i+5]-p[i+2])])}}
+  G.collares=s.collars.filter(c=>Math.abs(G.n[0]*c[1]+G.n[1]*c[2]-G.off)<=80).map(c=>[c[0],tDe(c[1],c[2]),c[3]]);
+}
+function rellenar(seg,cod,R,cnt){
+  const G=CORTE,nt=G.nt,nz=G.nz,filas=new Array(nz);
+  for(let i=0;i<seg.length;i+=4){const t1=seg[i],z1=seg[i+1],t2=seg[i+2],z2=seg[i+3];if(z1===z2)continue;
+    const lo=Math.min(z1,z2),hi=Math.max(z1,z2),k0=Math.max(0,Math.ceil((lo-ZMIN)/RES)),k1=Math.min(nz-1,Math.ceil((hi-ZMIN)/RES)-1);
+    for(let k=k0;k<=k1;k++){const z=ZMIN+k*RES;(filas[k]=filas[k]||[]).push(t1+(z-z1)*(t2-t1)/(z2-z1))}}
+  for(let k=0;k<nz;k++){const f=filas[k];if(!f)continue;f.sort((a,b)=>a-b);
+    for(let j=0;j+1<f.length;j+=2){const c0=Math.max(0,Math.ceil(f[j]/RES)),c1=Math.min(nt-1,Math.floor(f[j+1]/RES));
+      for(let c=c0;c<=c1;c++){R[k*nt+c]=cod;if(cnt)cnt[k*nt+c]++}}}
+}
+function bilin(A,x,y){const P=M.planta,fx=(x-P.x0)/P.paso,fy=(y-P.y0)/P.paso,i=Math.max(0,Math.min(P.nx-2,Math.floor(fx))),j=Math.max(0,Math.min(P.ny-2,Math.floor(fy))),u=fx-i,v=fy-j;
+  return A[j*P.nx+i]*(1-u)*(1-v)+A[j*P.nx+i+1]*u*(1-v)+A[(j+1)*P.nx+i]*(1-u)*v+A[(j+1)*P.nx+i+1]*u*v}
+function cotaSup(x,y){const R=SUP,fx=Math.max(0,Math.min(R.nx-1.001,(x-R.x0)/R.paso)),fy=Math.max(0,Math.min(R.ny-1.001,(y-R.y0)/R.paso)),i=Math.floor(fx),j=Math.floor(fy),u=fx-i,v=fy-j,Z=R.Z||(R.Z=i16(...R.z_dm)),k=j*R.nx+i;
+  return((Z[k]*(1-u)+Z[k+1]*u)*(1-v)+(Z[k+R.nx]*(1-u)+Z[k+R.nx+1]*u)*v)/10+R.z0}
+function codigoAClave(conj,cod){const L=conj==="lit"?M.leyenda.lito:conj==="zon"?M.leyenda.zona:M.leyenda.dominio;const e=L.find(l=>l[0]===cod);return e?e[1]:null}
+function fallaEnCorte(t,z,tol){   // falla visible cuya traza pasa a menos de tol metros del punto (t, z)
+  let mejor=null,dm=tol;for(const f of CORTE.fallas){if(!capas[f.c.clave].visible)continue;const s=f.s;
+    for(let i=0;i<s.length;i+=4){const ax=s[i],az=s[i+1],bx=s[i+2],bz=s[i+3],dx=bx-ax,dz=bz-az,L2=dx*dx+dz*dz||1,u=Math.max(0,Math.min(1,((t-ax)*dx+(z-az)*dz)/L2)),d=Math.hypot(t-ax-u*dx,z-az-u*dz);if(d<dm){dm=d;mejor=f.c.clave}}}
+  return mejor}
+function unidadEnCorte(t,z,modo){
+  const G=CORTE,it=Math.round(t/RES),kz=Math.round((z-ZMIN)/RES);if(it<0||kz<0||it>=G.nt||kz>=G.nz)return null;const i=kz*G.nt+it;
+  if(modo==="dom"&&G.raster.dom[i])return codigoAClave("dom",G.raster.dom[i]);
+  if(modo==="zon"&&G.raster.zon[i])return codigoAClave("zon",G.raster.zon[i]);
+  if(modo==="cu"&&G.cu[i]>=0&&capas.leyes)return G.raster.lit[i]?codigoAClave("lit",G.raster.lit[i]):null;
+  return G.raster.lit[i]?codigoAClave("lit",G.raster.lit[i]):null;
+}
+
+// ---------------------------------------------------------------- relleno raster (mismo para perfil 2D y cara del corte 3D)
+const rgb={};function hex2(h){if(rgb[h])return rgb[h];const c=parseInt(h.slice(1),16);return rgb[h]=[c>>16&255,c>>8&255,c&255]}
+const cacheAt={};function atenuar(h){if(cacheAt[h])return cacheAt[h];const c=new THREE.Color(h).lerp(new THREE.Color("#ffffff"),0.55);return cacheAt[h]="#"+c.getHexString()}
+function imagenRelleno(modo,soloVisibles){
+  const G=CORTE,cv=document.createElement("canvas");cv.width=G.nt;cv.height=G.nz;const ctx=cv.getContext("2d"),img=ctx.createImageData(G.nt,G.nz),L=M.leyenda;
+  const lit=G.vis.lit,zon=G.vis.zon,dom=G.vis.dom;
+  const vis=k=>!soloVisibles||(capas[k]&&capas[k].visible);
+  for(let kz=0;kz<G.nz;kz++)for(let it=0;it<G.nt;it++){const i=kz*G.nt+it,l=lit[i];if(!l)continue;const kl=L.lito[l-1];if(!vis(kl[1]))continue;
+    let c=kl[3];
+    if(ETAPA_GEO!=="real"){const m=MAPA_ETAPA[ETAPA_GEO][l];if(m)c=L.lito[m-1][3]}
+    else if(modo==="zon"){const v=zon[i];c=v&&vis(L.zona[v-1][1])?L.zona[v-1][3]:atenuar(kl[3])}
+    else if(modo==="dom"){const v=dom[i];c=v&&vis(L.dominio[v-1][1])?L.dominio[v-1][3]:atenuar(kl[3])}
+    else if(modo==="cu"){const v=G.cu[i]>=0?G.cu[i]:(G.cu[i-G.nt]??-1);c=v>=0.2?colorLey(v):atenuar(kl[3])}
+    const r=hex2(c),o=((G.nz-1-kz)*G.nt+it)*4;img.data[o]=r[0];img.data[o+1]=r[1];img.data[o+2]=r[2];img.data[o+3]=255}
+  ctx.putImageData(img,0,0);return cv;
+}
+function modoTapa(){
+  if(capas.leyes.visible)return"cu";
+  if(M.capas.some(c=>c.grupo==="Dominios mineralizados"&&capas[c.clave].visible))return"dom";
+  if(M.capas.some(c=>c.grupo==="Zonacion del exoskarn"&&capas[c.clave].visible))return"zon";
+  return"lit";
+}
+function pintarTapa(){
+  if(!CORTE)return;const on=$("#cOn").checked;
+  if(pintarTapa.on!==on){for(const k in capas){const m=capas[k].material;m.clippingPlanes=on?[planoCorte]:[];m.needsUpdate=true}if(rampaObj)for(const o of rampaObj.children){o.material.clippingPlanes=on?[planoCorte]:[];o.material.needsUpdate=true}pintarTapa.on=on}
+  for(const o of[bordeObj,fallaCorteObj])if(o){escena.remove(o);o.geometry.dispose()}bordeObj=fallaCorteObj=null;
+  if(planoSec){escena.remove(planoSec);planoSec.geometry.dispose();planoSec.material.dispose();planoSec=null}
+  for(const k in TAPAS)TAPAS[k].dispose();TAPAS={};
+  if(!on)return;
+  const G=CORTE,principal=modoTapa();TAPAS[principal]=texturaTapa(principal,true);
+  if(COMP.on)for(const m of[COMP.izq,COMP.der])if(!TAPAS[m])TAPAS[m]=texturaTapa(m,false);
+  const g=new THREE.PlaneGeometry((G.nt)*RES,(G.nz)*RES);
+  planoSec=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:TAPAS[principal],transparent:true,side:THREE.DoubleSide,alphaTest:0.05}));
+  const mid=[G.A[0]+G.d[0]*(G.nt-1)*RES/2,G.A[1]+G.d[1]*(G.nt-1)*RES/2];
+  planoSec.position.set(...toV(mid[0],mid[1],(ZMIN+ZMAX)/2));planoSec.rotation.y=(90-G.az)*Math.PI/180;
+  planoSec.translateZ(0.6);planoSec.name="cara_corte";escena.add(planoSec);
+  // borde del corte: franja clara donde la superficie natural se une con la cara geológica
+  bordeObj=cintaEnPlano(G.sup,0,-7,0xf4ead2);bordeObj.name="borde_corte";escena.add(bordeObj);
+  const fs=G.fallas.filter(f=>RESALT.has(f.c.clave)&&capas[f.c.clave].visible).flatMap(f=>f.s);
+  if(fs.length){fallaCorteObj=cintaEnPlano(fs,-6,6,0xffe08a,true);escena.add(fallaCorteObj)}
+}
+let TAPAS={};
+function texturaTapa(modo,soloVisibles){   // relleno con colores geológicos planos y contactos definidos
+  const G=CORTE,cv=imagenRelleno(modo,soloVisibles),ctx=cv.getContext("2d");
+  // contactos y fallas sobre la cara (1 px de la rejilla = 5 m)
+  ctx.lineWidth=1;ctx.strokeStyle="rgba(20,20,20,.85)";ctx.beginPath();
+  {const cp=G.contactoPar||[],mp=MAPA_ETAPA[ETAPA_GEO],q=c=>mp[c]||c;   // en una etapa reconstruida solo se dibujan los contactos que existen en esa etapa
+   for(let i=0;i<cp.length;i+=6){if(q(cp[i])===q(cp[i+1]))continue;ctx.moveTo(cp[i+2]/RES,G.nz-1-(cp[i+3]-ZMIN)/RES);ctx.lineTo(cp[i+4]/RES,G.nz-1-(cp[i+5]-ZMIN)/RES)}}
+  ctx.stroke();
+  if(SEL){const c=M.capas.find(c=>c.clave===SEL);if(c&&c.tipo==="compartida"){const sg2=(G.segs[c.conjunto]||{})[c.codigo]||[];ctx.strokeStyle="#fff";ctx.lineWidth=4;ctx.beginPath();
+    for(let i=0;i<sg2.length;i+=4){ctx.moveTo(sg2[i]/RES,G.nz-1-(sg2[i+1]-ZMIN)/RES);ctx.lineTo(sg2[i+2]/RES,G.nz-1-(sg2[i+3]-ZMIN)/RES)}ctx.stroke();ctx.strokeStyle=css("--accent");ctx.lineWidth=2;ctx.stroke()}}
+  for(const f of G.fallas){if(!capas[f.c.clave].visible)continue;if(RESALT.has(f.c.clave)){ctx.strokeStyle="#fff";ctx.lineWidth=7;ctx.beginPath();
+      for(let i=0;i<f.s.length;i+=4){ctx.moveTo(f.s[i]/RES,G.nz-1-(f.s[i+1]-ZMIN)/RES);ctx.lineTo(f.s[i+2]/RES,G.nz-1-(f.s[i+3]-ZMIN)/RES)}ctx.stroke()}
+    ctx.strokeStyle=f.c.color;ctx.lineWidth=RESALT.has(f.c.clave)?4:3;ctx.setLineDash(f.c.ficha.estado==="h"?[6,4]:[]);ctx.beginPath();
+    for(let i=0;i<f.s.length;i+=4){ctx.moveTo(f.s[i]/RES,G.nz-1-(f.s[i+1]-ZMIN)/RES);ctx.lineTo(f.s[i+2]/RES,G.nz-1-(f.s[i+3]-ZMIN)/RES)}ctx.stroke();ctx.setLineDash([])}
+  if(DEST_CONTACTO&&G.contactoIntr){const sg3=G.contactoIntr;for(const[col,w]of[["#1b1b1b",4],["#fff3c4",2]]){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.beginPath();
+    for(let i=0;i<sg3.length;i+=4){ctx.moveTo(sg3[i]/RES,G.nz-1-(sg3[i+1]-ZMIN)/RES);ctx.lineTo(sg3[i+2]/RES,G.nz-1-(sg3[i+3]-ZMIN)/RES)}ctx.stroke()}}
+  const tex=new THREE.CanvasTexture(cv);tex.magFilter=THREE.LinearFilter;tex.minFilter=THREE.LinearFilter;tex.anisotropy=4;return tex;
+}
+let bordeObj=null,fallaCorteObj=null;const RESALT=new Set();
+function cintaEnPlano(seg,d0,d1,color,perpendicular){   // cinta sobre el plano de corte a lo largo de segmentos (t, z), un poco delante de la cara
+  const G=CORTE,pos=[],off=-1.5;
+  const P=(t,z)=>[G.A[0]+t*G.d[0]+G.n[0]*off,G.A[1]+t*G.d[1]+G.n[1]*off,z];
+  for(let i=0;i<seg.length;i+=4){const t1=seg[i],z1=seg[i+1],t2=seg[i+2],z2=seg[i+3];let ax,az,bx,bz;
+    if(perpendicular){const L=Math.hypot(t2-t1,z2-z1)||1;ax=-(z2-z1)/L;az=(t2-t1)/L}else{ax=0;az=1}
+    const q=[P(t1+ax*d0,z1+az*d0),P(t2+ax*d0,z2+az*d0),P(t2+ax*d1,z2+az*d1),P(t1+ax*d1,z1+az*d1)].map(v=>toV(...v));
+    pos.push(...q[0],...q[1],...q[2],...q[0],...q[2],...q[3])}
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));
+  return new THREE.Mesh(g,new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide,depthTest:!perpendicular,transparent:!!perpendicular,opacity:perpendicular?0.95:1}));
+}
+function actualizarCorte(ligero){
+  const az=+$("#cAz").value,off=+$("#cOff").value;
+  CORTE=geometriaCorte(az,off);
+  const n3=new THREE.Vector3(CORTE.n[0],0,-CORTE.n[1]).normalize();
+  planoCorte.set(n3,-n3.dot(new THREE.Vector3(...toV(CORTE.p0[0],CORTE.p0[1],Z0))));
+  $("#oOff").textContent=(off>0?"+":"")+off+" m";$("#oAz").textContent="N"+String(az).padStart(3,"0")+"°";
+  $("#cInfo").textContent=`A (${cardinal(az+180)}) → A′ (${cardinal(az)}) · ${Math.round(CORTE.L)} m · + desplaza hacia el ${cardinal(az-90)}`;
+  calcularCorte(ligero);pintarTapa();if(flechasObj&&!ligero)flechas(true);if(!ligero){leyenda3D();redibujarTodo()}else{dibujarPlanta($("#cMini"),true);if(!$("#vpla").hidden)dibujarPlanta($("#cPla"),false)}
+}
+function cardinal(az){const n=["N","NE","E","SE","S","SO","O","NO"];return n[Math.round((((az%360)+360)%360)/45)%8]}
+let pendLig=false;function pedirCorteLigero(){if(pendLig)return;pendLig=true;requestAnimationFrame(()=>{pendLig=false;actualizarCorte(true)})}
+let pendiente=false;function pedirCorte(){if(pendiente)return;pendiente=true;requestAnimationFrame(()=>{pendiente=false;actualizarCorte()})}
+function redibujarTodo(){dibujarSeccion();dibujarPlanta($("#cPla"),false);dibujarPlanta($("#cMini"),true)}
+
+// ---------------------------------------------------------------- perfil 2D
+function dibujarSeccion(destino){
+  if(!CORTE)return;const G=CORTE,cv=destino||$("#cSec"),modo=$("#secModo").value;
+  if(!destino){const alto=Math.round(64+70+1400*(cv.width-120)/G.L);if(cv.height!==alto)cv.height=alto}   // alto según el largo del corte (escala 1:1)
+  const ctx=cv.getContext("2d"),W=cv.width,H=cv.height;
+  const ink=css("--ink"),mut=css("--muted"),pan=css("--panel");
+  ctx.fillStyle=pan;ctx.fillRect(0,0,W,H);
+  const z0=3550,z1=4950,mL=96,mR=24,mT=64,mB=70,L=G.L;
+  const s=Math.min((W-mL-mR)/L,(H-mT-mB)/(z1-z0)),w=L*s;   // escala 1:1, sin exageración vertical
+  const X=t=>mL+t*s,Y=z=>mT+(z1-z)*s;const Hb=(z1-z0)*s;
+  ctx.save();ctx.beginPath();ctx.rect(X(0),Y(z1),w,Hb);ctx.clip();
+  ctx.imageSmoothingEnabled=false;ctx.drawImage(imagenRelleno(modo,false),X(-RES/2),Y(ZMAX+RES/2),G.nt*RES*s,G.nz*RES*s);
+  const lineas=(sg,col,w2,dash)=>{ctx.strokeStyle=col;ctx.lineWidth=w2;ctx.setLineDash(dash||[]);ctx.beginPath();for(let i=0;i<sg.length;i+=4){ctx.moveTo(X(sg[i]),Y(sg[i+1]));ctx.lineTo(X(sg[i+2]),Y(sg[i+3]))}ctx.stroke();ctx.setLineDash([])};
+  if($("#sLit").checked)lineas(G.contactos.lit,"#151515",1.3);
+  if($("#sDom").checked&&modo==="dom")lineas(G.contactos.dom,"#5a0000",1.1,[4,3]);
+  if($("#sDom").checked&&modo==="zon")lineas(G.contactos.zon,"#2b3d12",1.1,[4,3]);
+  if(SEL){const c=M.capas.find(c=>c.clave===SEL);if(c&&c.tipo==="compartida"){const sg=G.segs[c.conjunto][c.codigo]||[];lineas(sg,"#fff",5.5);lineas(sg,css("--accent"),3)}}
+  if($("#sTaj").checked){const pr=G.premina;ctx.beginPath();pr.forEach(([t,z],i)=>i?ctx.lineTo(X(t),Y(z)):ctx.moveTo(X(t),Y(z)));ctx.strokeStyle=mut;ctx.lineWidth=1.3;ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);
+    lineas(G.sup,ink,2)}
+  const etiquetas=[];
+  if($("#sFal").checked)for(const f of G.fallas){if(!f.s.length||!capas[f.c.clave].visible)continue;const hip=f.c.ficha.estado==="h";
+    const selF=SEL===f.c.clave;if(selF)lineas(f.s,css("--accent"),11);
+    if(hip){lineas(f.s,"#fff",4.5);lineas(f.s,"#6b6b6b",2.4,[10,7])}else{lineas(f.s,"#fff",7);lineas(f.s,f.c.color,4)}
+    let best=null;for(let i=0;i<f.s.length;i+=2){const t=f.s[i],z=f.s[i+1];if(z<4900&&t>60&&t<L-60&&(!best||z>best[1]))best=[t,z]}
+    if(best)etiquetas.push([best,nombreFalla(f.c),f.c.color])}
+  if($("#sTaj").checked)for(const[t,z]of G.rampa){ctx.fillStyle="#3b2f22";ctx.beginPath();ctx.moveTo(X(t),Y(z)-4);ctx.lineTo(X(t)-8,Y(z)-18);ctx.lineTo(X(t)+8,Y(z)-18);ctx.closePath();ctx.fill();
+    ctx.font="600 14px IBM Plex Sans Condensed, sans-serif";ctx.textAlign="center";ctx.lineWidth=3;ctx.strokeStyle="#fff";ctx.strokeText("Rampa",X(t),Y(z)-22);ctx.fillText("Rampa",X(t),Y(z)-22)}
+  if($("#sSon").checked&&capas.sondajes.visible){
+    for(const q of G.son){ctx.strokeStyle="#111";ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(X(q[0]),Y(q[1]));ctx.lineTo(X(q[2]),Y(q[3]));ctx.stroke();
+      ctx.strokeStyle=modo==="cu"?(q[5]>=0?colorLey(q[5]):"#777"):(q[4]>0?M.leyenda.lito[q[4]-1][3]:"#777");ctx.lineWidth=3;ctx.stroke()}
+    for(const[t,z]of G.perf){ctx.beginPath();ctx.arc(X(t),Y(z),6,0,7);ctx.fillStyle="#fff";ctx.fill();ctx.lineWidth=2.4;ctx.strokeStyle="#111";ctx.stroke();ctx.beginPath();ctx.arc(X(t),Y(z),2,0,7);ctx.fillStyle="#111";ctx.fill()}
+    ctx.font="600 15px IBM Plex Sans Condensed, sans-serif";ctx.textAlign="center";
+    for(const[id,t,z]of G.collares){ctx.fillStyle="#111";ctx.strokeStyle="#fff";ctx.lineWidth=3;ctx.strokeText(id,X(t),Y(z)-8);ctx.fillText(id,X(t),Y(z)-8)}}
+  ctx.font="700 16px IBM Plex Sans Condensed, sans-serif";ctx.textAlign="left";
+  for(const[[t,z],txt,col]of etiquetas){const x=Math.min(X(t)+8,X(L)-ctx.measureText(txt).width-6),y=Y(z)-8;ctx.lineWidth=4;ctx.strokeStyle="#fff";ctx.strokeText(txt,x,y);ctx.fillStyle=col==="#c9c9c9"?"#555":shade(col);ctx.fillText(txt,x,y)}
+  ctx.restore();
+  // ejes
+  ctx.fillStyle=ink;ctx.strokeStyle=mut;ctx.lineWidth=1;ctx.font="17px IBM Plex Mono, monospace";ctx.textAlign="right";
+  for(let z=3600;z<=4900;z+=100){ctx.beginPath();ctx.moveTo(mL-5,Y(z));ctx.lineTo(mL,Y(z));ctx.stroke();ctx.fillText(z.toLocaleString("es-PE"),mL-9,Y(z)+6)}
+  ctx.textAlign="center";const paso=L>3200?1000:500;for(let t=0;t<=L;t+=paso){ctx.beginPath();ctx.moveTo(X(t),Y(z0));ctx.lineTo(X(t),Y(z0)+5);ctx.stroke();ctx.fillText(t+" m",X(t),Y(z0)+24)}
+  ctx.strokeRect(X(0),Y(z1),w,Hb);
+  ctx.font="600 24px IBM Plex Sans Condensed, sans-serif";ctx.fillStyle=css("--cut");ctx.textAlign="left";ctx.fillText(`A (${cardinal(G.az+180)})`,X(0),mT-30);ctx.textAlign="right";ctx.fillText(`(${cardinal(G.az)}) A′`,X(L),mT-30);
+  ctx.font="15px IBM Plex Sans, sans-serif";ctx.fillStyle=mut;ctx.textAlign="center";
+  ctx.fillText(`Azimut N${String(G.az).padStart(3,"0")}° · desplazamiento ${G.off} m · escala 1:1 · cota m s.n.m.`,X(L/2),mT-36);
+  ctx.fillText("Distancia en coordenadas locales (dimensiones ilustrativas)",X(L/2),mT-14);
+  if(!destino){leyendaSeccion();}
+}
+function shade(h){const c=new THREE.Color(h).multiplyScalar(0.7);return"#"+c.getHexString()}
+function nombreFalla(c){return c.clave==="falla_hipotetica_H1"?"Falla H-1 (Hipotética)":c.clave==="falla_valle"?"Falla del Valle (interpretada)":"Cabalgamiento (interpretado)"}
+function leyendaSeccion(){
+  const L=M.leyenda,modo=$("#secModo").value;let it=[];
+  if(modo==="lit")it=L.lito.map(l=>[l[3],l[2]]);if(modo==="zon")it=L.zona.map(l=>[l[3],l[2]+" (interpretado)"]);if(modo==="dom")it=L.dominio.map(l=>[l[3],l[2]+" (forma interpretativa)"]);
+  if(modo==="cu")it=LEYC.map((l,i)=>[l[1],LEYC_TXT[i]+" Cu (SINTÉTICO)"]);
+  let h=it.map(([c,n])=>`<span><i class="sw" style="background:${c}"></i>${esc(n)}</span>`).join("");
+  if(modo!=="lit")h+=`<span><i class="sw" style="background:#ddd"></i>Litología atenuada fuera del dominio</span>`;
+  if($("#sLit").checked)h+=`<span><i class="ln" style="border-color:#151515;border-top-width:2px"></i>Contacto litológico</span>`;
+  if($("#sFal").checked)h+=M.capas.filter(c=>c.grupo==="Fallas"&&capas[c.clave].visible).map(c=>c.ficha.estado==="h"?`<span><i class="ln" style="border-color:#6b6b6b;border-top-style:dashed;border-top-width:2px"></i>${esc(nombreFalla(c))}</span>`:`<span><i class="ln" style="border-color:${c.color};border-top-width:4px"></i>${esc(nombreFalla(c))}</span>`).join("");
+  if($("#sTaj").checked)h+=`<span>▼ Rampa (trazado ilustrativo)</span>`;
+  if($("#sSon").checked&&capas.sondajes.visible)h+=`<span><i class="ln" style="border-color:#111"></i>Sondaje sintético (±80 m)</span><span>◉ Perforación del plano</span>`;
+  if($("#sTaj").checked)h+=`<span><i class="ln" style="border-color:var(--ink)"></i>Superficie actual (tajo)</span><span><i class="ln" style="border-color:var(--muted);border-top-style:dashed"></i>Topografía pre-mina</span>`;
+  $("#leySec").innerHTML=h;
+  const G=CORTE,n=G.cnt,lit=G.raster.lit;let dentro=0,sol=0,huecos=0;
+  for(let kz=0;kz<G.nz;kz++)for(let it=0;it<G.nt;it++){const i=kz*G.nt+it;if(lit[i]){dentro++;if(n[i]>1)sol++}
+    else{const t=it*RES,z=ZMIN+kz*RES,x=G.A[0]+t*G.d[0],y=G.A[1]+t*G.d[1],B=M.caja;
+      if(z>ZMIN+20&&x>B.xmin+20&&x<B.xmax-20&&y>B.ymin+20&&y<B.ymax-20&&z<cotaSup(x,y)-40)huecos++}}
+  G.prueba={dentro,solapes:sol,huecos};
+  $("#notaSec").textContent=(modo==="cu"?"La ley de Cu es SINTÉTICA, no es un dato de Antamina. ":"")+
+    `El perfil se calcula al momento cortando con el plano las mismas mallas del bloque 3D (contactos compartidos SurfaceNets), las fallas, la superficie del tajo (rejilla de 4 m, con bancos y rampa) y los sondajes. Los sólidos terminan 8 m bajo la superficie; solo en el dibujo el relleno se prolonga hasta ella (≤ 30 m). `+
+    `Comprobación en este corte: de ${dentro.toLocaleString("es-PE")} celdas de 5 m con roca, ${sol} caen en dos unidades a la vez y ${huecos} quedan sin unidad a más de 40 m bajo la superficie (la franja superior incluye el margen de 8 m de los sólidos y el escalón de las celdas de 15 m en las paredes del tajo; tampoco se cuentan 20 m junto a los bordes de la caja).`;
+}
+
+// ---------------------------------------------------------------- planta
+function dibujarPlanta(cv,mini){
+  if(!M||!CORTE)return;const P=M.planta,W=cv.width,H=cv.height,cvReal=cv;
+  const ink=css("--ink"),pan=css("--panel");
+  const clave=[cv.id,mini?"lit":$("#plaModo").value,$("#pCur").checked,$("#pInt").checked,$("#pFal").checked,$("#pSon").checked,$("#pRam").checked,pan,
+    ...M.capas.filter(c=>c.grupo==="Fallas"||c.grupo==="Sondajes").map(c=>capas[c.clave].visible),"R:"+[...RESALT].join(",")].join("|");
+  dibujarPlanta.base=dibujarPlanta.base||{};let base=dibujarPlanta.base[cv.id];
+  const m0=mini?34:52,s0=(W-2*m0)/((P.nx-1)*P.paso);
+  if(base&&base.clave===clave){const c2=cvReal.getContext("2d");c2.drawImage(base.cv,0,0);trazaPlanta(c2,W,H,m0,s0,mini,ink);return}
+  base={clave,cv:document.createElement("canvas")};base.cv.width=W;base.cv.height=H;dibujarPlanta.base[cv.id]=base;cv=base.cv;
+  const ctx=cv.getContext("2d");
+  ctx.fillStyle=pan;ctx.fillRect(0,0,W,H);
+  const m=mini?34:52,s=(W-2*m)/((P.nx-1)*P.paso),X=x=>m+(x-P.x0)*s,Y=y=>H-m-(y-P.y0)*s;
+  const lit=u8(...P.lit),dom=u8(...P.dom),cota=P.cotaA,intr=u8(...P.intr3900),L=M.leyenda,modo=mini?"lit":$("#plaModo").value;
+  if(!P.cache||P.cache.modo!==modo){const off=document.createElement("canvas");off.width=P.nx;off.height=P.ny;const oc=off.getContext("2d"),img=oc.createImageData(P.nx,P.ny);
+    for(let j=0;j<P.ny;j++)for(let i=0;i<P.nx;i++){const k=j*P.nx+i;let c=modo==="lit"?(lit[k]?L.lito[lit[k]-1][3]:"#999999"):(dom[k]?L.dominio[dom[k]-1][3]:(lit[k]?atenuar(L.lito[lit[k]-1][3]):"#999999"));
+      const r=hex2(c),o=((P.ny-1-j)*P.nx+i)*4;img.data[o]=r[0];img.data[o+1]=r[1];img.data[o+2]=r[2];img.data[o+3]=255}
+    oc.putImageData(img,0,0);P.cache={modo,off}}
+  ctx.imageSmoothingEnabled=true;ctx.drawImage(P.cache.off,X(P.x0)-s*P.paso/2,Y(P.y0+(P.ny-1)*P.paso)-s*P.paso/2,P.nx*P.paso*s,P.ny*P.paso*s);
+  // sombreado de la superficie actual (rejilla de 4 m: se leen bancos y rampa)
+  const R=SUP,Zs=R.Z||(R.Z=i16(...R.z_dm));
+  if(!R.sombra){const off=document.createElement("canvas");off.width=R.nx;off.height=R.ny;const oc=off.getContext("2d"),img=oc.createImageData(R.nx,R.ny);
+    const L=[-0.55,0.55,0.63];
+    for(let j=0;j<R.ny;j++)for(let i=0;i<R.nx;i++){const k=j*R.nx+i,gx=(Zs[j*R.nx+Math.min(i+1,R.nx-1)]-Zs[j*R.nx+Math.max(i-1,0)])/(20*R.paso),gy=(Zs[Math.min(j+1,R.ny-1)*R.nx+i]-Zs[Math.max(j-1,0)*R.nx+i])/(20*R.paso);
+      const n=Math.hypot(gx,gy,1),v=Math.max(0,(-gx*L[0]-gy*L[1]+L[2])/n),g=Math.round(105+150*v),o=((R.ny-1-j)*R.nx+i)*4;img.data[o]=img.data[o+1]=img.data[o+2]=g;img.data[o+3]=255}
+    oc.putImageData(img,0,0);R.sombra=off}
+  ctx.globalCompositeOperation="multiply";ctx.drawImage(R.sombra,X(R.x0)-s*R.paso/2,Y(R.y0+(R.ny-1)*R.paso)-s*R.paso/2,R.nx*R.paso*s,R.ny*R.paso*s);ctx.globalCompositeOperation="source-over";
+  const iso=(campo,nivel,col,w,dash)=>{ctx.strokeStyle=col;ctx.lineWidth=w;ctx.setLineDash(dash||[]);ctx.beginPath();
+    for(let j=0;j<P.ny-1;j++)for(let i=0;i<P.nx-1;i++){const a=campo(i,j),b=campo(i+1,j),c=campo(i+1,j+1),d=campo(i,j+1),pts=[];
+      const e=(v1,v2,x1,y1,x2,y2)=>{if((v1<nivel)!==(v2<nivel)){const f=(nivel-v1)/(v2-v1);pts.push([x1+f*(x2-x1),y1+f*(y2-y1)])}};
+      e(a,b,i,j,i+1,j);e(b,c,i+1,j,i+1,j+1);e(c,d,i+1,j+1,i,j+1);e(d,a,i,j+1,i,j);
+      for(let q=0;q+1<pts.length;q+=2){ctx.moveTo(X(P.x0+pts[q][0]*P.paso),Y(P.y0+pts[q][1]*P.paso));ctx.lineTo(X(P.x0+pts[q+1][0]*P.paso),Y(P.y0+pts[q+1][1]*P.paso))}}
+    ctx.stroke();ctx.setLineDash([])};
+  const pCur=mini||$("#pCur").checked,pInt=mini||$("#pInt").checked,pFal=mini||$("#pFal").checked,pSon=!mini&&$("#pSon").checked;
+  if(pCur){const st=mini?4:2,nx2=Math.floor((R.nx-1)/st)+1,ny2=Math.floor((R.ny-1)/st)+1,f=(i,j)=>Zs[(j*st)*R.nx+i*st]/10+R.z0;   // curvas sobre la misma rejilla de 4 m
+    for(let z=4000;z<=4950;z+=50){ctx.strokeStyle=z%250?"rgba(0,0,0,.28)":"rgba(0,0,0,.55)";ctx.lineWidth=z%250?0.6:1.1;ctx.beginPath();
+      for(let j=0;j<ny2-1;j++)for(let i=0;i<nx2-1;i++){const a=f(i,j),b=f(i+1,j),c=f(i+1,j+1),d=f(i,j+1),pts=[];
+        const e=(v1,v2,x1,y1,x2,y2)=>{if((v1<z)!==(v2<z)){const t=(z-v1)/(v2-v1);pts.push([x1+t*(x2-x1),y1+t*(y2-y1)])}};
+        e(a,b,i,j,i+1,j);e(b,c,i+1,j,i+1,j+1);e(c,d,i+1,j+1,i,j+1);e(d,a,i,j+1,i,j);
+        for(let q=0;q+1<pts.length;q+=2){ctx.moveTo(X(R.x0+pts[q][0]*st*R.paso),Y(R.y0+pts[q][1]*st*R.paso));ctx.lineTo(X(R.x0+pts[q+1][0]*st*R.paso),Y(R.y0+pts[q+1][1]*st*R.paso))}}
+      ctx.stroke()}}
+  if(mini||$("#pRam").checked){   // eje de la rampa (solo los tramos dentro del tajo)
+    for(const[col,w,dash]of[["#fff",mini?5:6,[]],["#3b2f22",mini?2.4:2.8,[10,5]]]){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.setLineDash(dash);ctx.beginPath();let pen=false;
+      for(let i=0;i<RAMPA.length;i+=4){if(RAMPA[i+3]<0.5){pen=false;continue}const x=X(RAMPA[i]),y=Y(RAMPA[i+1]);pen?ctx.lineTo(x,y):ctx.moveTo(x,y);pen=true}ctx.stroke()}
+    ctx.setLineDash([]);
+    if(!mini){let best=null;for(let i=0;i<RAMPA.length;i+=4)if(RAMPA[i+3]>0.5&&(!best||RAMPA[i+1]>best[1]))best=[RAMPA[i],RAMPA[i+1]];
+      if(best){ctx.font="600 16px IBM Plex Sans Condensed, sans-serif";ctx.textAlign="center";ctx.lineWidth=4;ctx.strokeStyle="#fff";ctx.fillStyle="#3b2f22";ctx.strokeText("Rampa (ilustrativa)",X(best[0]),Y(best[1])-12);ctx.fillText("Rampa (ilustrativa)",X(best[0]),Y(best[1])-12)}}}
+  if(pInt)iso((i,j)=>intr[j*P.nx+i],0.5,"#c2185b",mini?1.8:2.4,[7,4]);
+  if(pFal)for(const c of M.capas)if(c.grupo==="Fallas"&&capas[c.clave].visible&&RESALT.has(c.clave)){const p=c.P,ix=c.I;ctx.strokeStyle=css("--accent");ctx.lineWidth=mini?9:11;ctx.setLineDash([]);ctx.beginPath();   // traza resaltada
+    for(let t=0;t<ix.length;t+=3){const v=[ix[t],ix[t+1],ix[t+2]],pts=[];for(let k=0;k<3;k++){const a=v[k],b=v[(k+1)%3],za=p[3*a+2]-4300,zb=p[3*b+2]-4300;
+      if((za<0)!==(zb<0)){const f=za/(za-zb);pts.push([p[3*a]+f*(p[3*b]-p[3*a]),p[3*a+1]+f*(p[3*b+1]-p[3*a+1])])}}
+      if(pts.length===2){ctx.moveTo(X(pts[0][0]),Y(pts[0][1]));ctx.lineTo(X(pts[1][0]),Y(pts[1][1]))}}ctx.stroke()}
+  if(pFal)for(const c of M.capas)if(c.grupo==="Fallas"&&capas[c.clave].visible){const p=c.P,ix=c.I,hip=c.ficha.estado==="h";ctx.strokeStyle=hip?"#6b6b6b":c.color;ctx.lineWidth=hip?(mini?1.6:2):(mini?2.6:3.6);ctx.setLineDash(hip?[9,6]:[]);ctx.beginPath();
+    for(let t=0;t<ix.length;t+=3){const v=[ix[t],ix[t+1],ix[t+2]],pts=[];for(let k=0;k<3;k++){const a=v[k],b=v[(k+1)%3],za=p[3*a+2]-4300,zb=p[3*b+2]-4300;
+      if((za<0)!==(zb<0)){const f=za/(za-zb);pts.push([p[3*a]+f*(p[3*b]-p[3*a]),p[3*a+1]+f*(p[3*b+1]-p[3*a+1])])}}
+      if(pts.length===2){ctx.moveTo(X(pts[0][0]),Y(pts[0][1]));ctx.lineTo(X(pts[1][0]),Y(pts[1][1]))}}ctx.stroke();ctx.setLineDash([])}
+  if(pSon&&capas.sondajes.visible){ctx.fillStyle="#111";ctx.strokeStyle="#fff";ctx.lineWidth=1.5;for(const c of M.capas.find(c=>c.clave==="sondajes").collars){ctx.beginPath();ctx.arc(X(c[1]),Y(c[2]),4.5,0,7);ctx.fill();ctx.stroke()}}
+  ctx.strokeStyle=ink;ctx.lineWidth=1;ctx.strokeRect(m,m,W-2*m,H-2*m);ctx.fillStyle=ink;ctx.font=`${mini?20:16}px IBM Plex Mono, monospace`;ctx.textAlign="center";
+  for(let x=-1500;x<=1500;x+=mini?1000:500){ctx.fillText(x,X(x),H-m+(mini?24:22));ctx.save();ctx.translate(m-(mini?12:20),Y(x));ctx.rotate(-Math.PI/2);ctx.fillText(x,0,0);ctx.restore()}
+  ctx.font=`700 ${mini?22:16}px IBM Plex Sans Condensed, sans-serif`;ctx.fillText("N",W-m-24,m+30);ctx.beginPath();ctx.moveTo(W-m-24,m+36);ctx.lineTo(W-m-24,m+70);ctx.moveTo(W-m-30,m+46);ctx.lineTo(W-m-24,m+36);ctx.lineTo(W-m-18,m+46);ctx.stroke();
+  if(!mini){ctx.font="16px IBM Plex Sans, sans-serif";ctx.textAlign="left";ctx.fillText("x local (m, Este) · y local (m, Norte) · sistema local, dimensiones ilustrativas",m,m-16);
+    const it=(modo==="lit"?L.lito:L.dominio).map(l=>`<span><i class="sw" style="background:${l[3]}"></i>${esc(l[2])}</span>`).join("");
+    $("#leyPla").innerHTML=it+`<span><i class="ln" style="border-color:#c2185b;border-top-style:dashed"></i>Intrusivo a 3900 m (800 × 750 m, LS2005 p. 197)</span>`+
+      M.capas.filter(c=>c.grupo==="Fallas"&&capas[c.clave].visible).map(c=>c.ficha.estado==="h"?`<span><i class="ln" style="border-color:#6b6b6b;border-top-style:dashed;border-top-width:2px"></i>${esc(nombreFalla(c))} a 4300 m</span>`:`<span><i class="ln" style="border-color:${c.color};border-top-width:4px"></i>${esc(nombreFalla(c))} a 4300 m</span>`).join("")+
+      `<span><i class="ln" style="border-color:#3b2f22;border-top-style:dashed"></i>Eje de la rampa (ilustrativo)</span><span>Sombreado y curvas cada 50 m de la superficie actual (rejilla de 4 m)</span>`+
+      `<span><i class="ln" style="border-color:var(--cut)"></i>Traza A–A′ (la flecha señala el lado visible)</span>`+(capas.sondajes.visible?`<span><i class="sw" style="background:#111;border-radius:50%"></i>Collares sintéticos</span>`:"")}
+  const c2=cvReal.getContext("2d");c2.drawImage(cv,0,0);trazaPlanta(c2,W,H,m,s,mini,ink);
+}
+function trazaPlanta(ctx,W,H,m,s,mini,ink){
+  const P=M.planta,X=x=>m+(x-P.x0)*s,Y=y=>H-m-(y-P.y0)*s;
+  // traza del corte (misma geometría que el plano 3D y el perfil)
+  const G=CORTE,cut=css("--cut");
+  ctx.strokeStyle="#fff";ctx.lineWidth=mini?6:7;ctx.beginPath();ctx.moveTo(X(G.A[0]),Y(G.A[1]));ctx.lineTo(X(G.Ap[0]),Y(G.Ap[1]));ctx.stroke();
+  ctx.strokeStyle=cut;ctx.lineWidth=mini?3:3.5;ctx.stroke();
+  // flecha hacia el lado que se conserva (lo que se ve en el perfil)
+  const mid=[(G.A[0]+G.Ap[0])/2,(G.A[1]+G.Ap[1])/2],fl=mini?160:120;ctx.beginPath();ctx.moveTo(X(mid[0]),Y(mid[1]));ctx.lineTo(X(mid[0]+G.n[0]*fl),Y(mid[1]+G.n[1]*fl));ctx.stroke();
+  ctx.fillStyle=cut;ctx.font=`700 ${mini?26:22}px IBM Plex Sans Condensed, sans-serif`;ctx.textAlign="center";
+  const lab=(P2,txt)=>{const x=X(P2[0]-G.d[0]*0)+(-G.n[0])*16,y=Y(P2[1])+G.n[1]*16;ctx.lineWidth=4;ctx.strokeStyle="#fff";ctx.strokeText(txt,x,y+8);ctx.fillText(txt,x,y+8)};
+  lab([G.A[0]+G.d[0]*60,G.A[1]+G.d[1]*60],"A");lab([G.Ap[0]-G.d[0]*60,G.Ap[1]-G.d[1]*60],"A′");
+}
+
+// ---------------------------------------------------------------- controles
+function prepararControles(){
+  for(const id of["#cAz","#cOff"]){$(id).addEventListener("input",()=>{if(ANIM)ANIM.pausa=true,detenerAnimacion();pedirCorteLigero()});$(id).addEventListener("change",pedirCorte)}
+  $("#cOn").addEventListener("change",()=>{pintarTapa();leyenda3D()});
+  ["secModo","sLit","sDom","sFal","sSon","sTaj"].forEach(id=>$("#"+id).addEventListener("change",()=>dibujarSeccion()));
+  ["plaModo","pCur","pInt","pFal","pSon","pRam"].forEach(id=>$("#"+id).addEventListener("change",()=>dibujarPlanta($("#cPla"),false)));
+  prepararModos();
+  $("#b-panel").onclick=()=>{const off=document.body.classList.toggle("sin-panel");$("#b-panel").setAttribute("aria-pressed",!off);setTimeout(redimensionar,0)};
+  $("#b-present").onclick=()=>document.body.classList.contains("presentacion")?salirPresentacion():entrarPresentacion();
+  document.querySelectorAll(".mas .menu button").forEach(b=>b.addEventListener("click",()=>{if(!["b-rampa","b-comp"].includes(b.id))$("#mas").open=false}));
+  $("#b-tajo").onclick=encuadreTajo;$("#b-geo").onclick=encuadreGeologia;
+  $("#b-revelar").onclick=revelarSubsuelo;$("#b-pausa").onclick=pausarAnimacion;$("#b-rampa").onclick=()=>resaltarRampa(!rampaVis);
+  $("#b-tour").onclick=()=>ESC>=0?cerrarExpo():abrirExpo(0);$("#expoAnt").onclick=()=>abrirExpo(ESC-1);$("#expoSig").onclick=()=>abrirExpo(ESC+1);$("#expoLibre").onclick=cerrarExpo;$("#tourAnt").onclick=()=>irParada(PARADA-1);$("#tourSig").onclick=()=>irParada(PARADA+1);$("#tourSal").onclick=salirTour;
+  $("#cOn").addEventListener("change",()=>marcarEncuadre(""));
+  $("#b-iso").onclick=vistaIso;$("#b-frente").onclick=vistaFrente;$("#b-pla").onclick=()=>fijarCam([0,5600,1],[0,0,0]);
+  $("#b-inicio").onclick=()=>{aplicarInicio();$("#t-3d").click();aviso("Vista inicial restablecida")};
+  $("#b-png").onclick=exportarPNG;$("#b-glb").onclick=exportarGLB;
+  $("#cSec").addEventListener("click",e=>{
+    const cv=$("#cSec"),r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*cv.width/r.width,y=(e.clientY-r.top)*cv.height/r.height;
+    const G=CORTE,z1=4950,mL=96,mT=64,s=Math.min((cv.width-96-24)/G.L,(cv.height-64-70)/1400),t=(x-mL)/s,z=z1-(y-mT)/s;
+    const k=($("#sFal").checked?fallaEnCorte(t,z,6/s):null)||unidadEnCorte(t,z,$("#secModo").value);seleccionar(k,k?[G.A[0]+t*G.d[0],G.A[1]+t*G.d[1],z]:null)});
+}
+function aplicarInicio(){
+  if(COMP.on)comparar(false);ANTERIOR=null;$("#b-volver").hidden=true;$("#qFal").checked=false;$("#qSon").checked=false;
+  $("#cOn").checked=INICIO.corte.on;$("#cAz").value=INICIO.corte.az;$("#cOff").value=INICIO.corte.off;
+  for(const c of M.capas){fijarVisible(c.clave,c.visible&&!INICIO.ocultas.includes(c.clave));if(capas[c.clave].material&&c.tipo!=="lineas"&&c.tipo!=="puntos")fijarOpacidad(c.clave,INICIO.opacidad[c.clave]??1)}
+  if(innerWidth<=820)$("#leyPanel").open=false;
+  ENCUADRE_PENDIENTE=!tamanoValido();
+  salirTour(true);if(ESC>=0)cerrarExpo();resaltarRampa(false);resaltarFallas([]);
+  seleccionar(null);MODO="lit";AISLADO=null;aplicarVisual("lit");document.querySelectorAll(".modos button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.modo==="lit"));$("#panelCu").hidden=true;$("#etqSint").hidden=true;
+  actualizarCorte();if(INICIO.modo==="geo")encuadreGeologia();else encuadreTajo();leyenda3D();
+}
+
+// ---------------------------------------------------------------- exportación
+async function guardar(nombre,blob){
+  try{if(window.claude&&claude.use){const d=await claude.use("downloads");if(d){await d.save({filename:nombre,data:blob});aviso("Archivo entregado: "+nombre);return}}}
+  catch(e){if(e&&e.code==="declined"){aviso("Descarga cancelada");return}console.warn(e)}
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nombre;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);aviso("Descarga iniciada: "+nombre);
+}
+function exportarPNG(){
+  const W=2400,s=(W-120)/CORTE.L,Hsec=Math.round(64+70+1400*s);   // mismo alto que el perfil en pantalla (escala 1:1)
+  const sec=document.createElement("canvas");sec.width=W;sec.height=Hsec;dibujarSeccion(sec);
+  // leyenda al pie, en filas que no se pisan
+  const items=[...document.querySelectorAll("#leySec span")].map(sp=>{const i=sp.querySelector("i"),st=i?getComputedStyle(i):null;
+    return[st?(st.backgroundColor!=="rgba(0, 0, 0, 0)"?["caja",st.backgroundColor]:["linea",st.borderTopColor,st.borderTopStyle]):null,sp.textContent.trim()]});
+  const tmp=document.createElement("canvas").getContext("2d");tmp.font="18px IBM Plex Sans, sans-serif";
+  const filas=[[]];let x=96;for(const it of items){const w=tmp.measureText(it[1]).width+46;if(x+w>W-24&&filas.at(-1).length){filas.push([]);x=96}filas.at(-1).push([x,it]);x+=w}
+  const cv=document.createElement("canvas");cv.width=W;cv.height=Hsec+16+filas.length*30+20;const ctx=cv.getContext("2d");
+  ctx.fillStyle=css("--panel");ctx.fillRect(0,0,cv.width,cv.height);ctx.drawImage(sec,0,0);
+  ctx.font="18px IBM Plex Sans, sans-serif";ctx.textAlign="left";
+  filas.forEach((fila,r)=>{const y=Hsec+16+r*30+18;for(const[x0,[m,t]]of fila){
+    if(m&&m[0]==="caja"){ctx.fillStyle=m[1];ctx.fillRect(x0,y-14,18,18)}
+    else if(m){ctx.strokeStyle=m[1];ctx.lineWidth=4;ctx.setLineDash(m[2]==="dashed"?[7,4]:[]);ctx.beginPath();ctx.moveTo(x0,y-5);ctx.lineTo(x0+22,y-5);ctx.stroke();ctx.setLineDash([])}
+    ctx.fillStyle=css("--ink");ctx.fillText(t,x0+(m?28:0),y)}});
+  cv.toBlob(b=>guardar(`antamina_seccion_N${String(CORTE.az).padStart(3,"0")}_d${CORTE.off}m.png`,b),"image/png");
+}
+function exportarGLB(){
+  // glTF 2.0 binario con las capas visibles (sin recortar). Eje Y = cota (m s.n.m.), X = Este, -Z = Norte (sistema local).
+  const json={asset:{version:"2.0",generator:"Antamina 3D conceptual"},scene:0,scenes:[{nodes:[]}],nodes:[],meshes:[],materials:[],accessors:[],bufferViews:[],buffers:[]};
+  const partes=[];let off=0;
+  const vista=(arr,target)=>{const b=new Uint8Array(arr.buffer,arr.byteOffset,arr.byteLength);partes.push(b);const pad=(4-b.byteLength%4)%4;if(pad)partes.push(new Uint8Array(pad));
+    json.bufferViews.push(Object.assign({buffer:0,byteOffset:off,byteLength:b.byteLength},target?{target}:{}));off+=b.byteLength+pad;return json.bufferViews.length-1};
+  const acc=(arr,tipo,compType,n,extra)=>{json.accessors.push(Object.assign({bufferView:vista(arr,extra&&extra.target),componentType:compType,count:n,type:tipo},extra&&extra.mm||{}));return json.accessors.length-1};
+  const lin=c=>{const t=new THREE.Color(c);t.convertSRGBToLinear();return[t.r,t.g,t.b]};
+  let nObj=0;
+  for(const c of M.capas){const o=capas[c.clave];if(!o.visible||o.isInstancedMesh)continue;nObj++;
+    const pos=o.geometry.attributes.position.array;let P,I=null,modo=4,col=null;
+    if(o.isMesh){const ix=o.geometry.index.array,map=new Int32Array(pos.length/3).fill(-1),pl=[];I=new Uint32Array(ix.length);let n=0;
+      for(let i=0;i<ix.length;i++){let v=map[ix[i]];if(v<0){v=map[ix[i]]=n++;pl.push(pos[3*ix[i]],pos[3*ix[i]+1]+Z0,pos[3*ix[i]+2])}I[i]=v}P=new Float32Array(pl)}
+    else{P=new Float32Array(pos.length);for(let i=0;i<pos.length;i+=3){P[i]=pos[i];P[i+1]=pos[i+1]+Z0;P[i+2]=pos[i+2]}modo=o.isPoints?0:1;
+      const cc=o.geometry.attributes.color.array;col=new Float32Array(cc.length);for(let i=0;i<cc.length;i++)col[i]=Math.pow(cc[i],2.2)}
+    const mn=[Infinity,Infinity,Infinity],mx=[-Infinity,-Infinity,-Infinity];for(let i=0;i<P.length;i+=3)for(let k=0;k<3;k++){mn[k]=Math.min(mn[k],P[i+k]);mx[k]=Math.max(mx[k],P[i+k])}
+    const attrs={POSITION:acc(P,"VEC3",5126,P.length/3,{target:34962,mm:{min:mn,max:mx}})};
+    if(col)attrs.COLOR_0=acc(col,"VEC3",5126,col.length/3,{target:34962});
+    const op=o.userData.op??1;
+    json.materials.push({name:c.clave,doubleSided:true,alphaMode:op<1?"BLEND":"OPAQUE",pbrMetallicRoughness:{baseColorFactor:[...(c.color?lin(c.color):[1,1,1]),op],metallicFactor:0,roughnessFactor:0.9}});
+    const prim={attributes:attrs,material:json.materials.length-1,mode:modo};if(I)prim.indices=acc(I,"SCALAR",5125,I.length,{target:34963});
+    json.meshes.push({name:c.clave,primitives:[prim]});
+    const ex={nombre:c.nombre,grupo:c.grupo,procedencia:TXT[c.ficha.estado]};Object.assign(ex,c.attr||{});if(c.ficha.respaldo)ex.respaldo_fuente=c.ficha.respaldo;if(c.ficha.interpretado)ex.interpretado=c.ficha.interpretado;if(c.ficha.sintetico)ex.sintetico=c.ficha.sintetico;
+    json.nodes.push({name:c.clave,mesh:json.meshes.length-1,extras:ex});json.scenes[0].nodes.push(json.nodes.length-1)}
+  json.buffers.push({byteLength:off});
+  let js=new TextEncoder().encode(JSON.stringify(json));const jp=(4-js.length%4)%4;if(jp){const t=new Uint8Array(js.length+jp);t.set(js);t.fill(32,js.length);js=t}
+  const total=12+8+js.length+8+off,head=new DataView(new ArrayBuffer(20));
+  head.setUint32(0,0x46546C67,true);head.setUint32(4,2,true);head.setUint32(8,total,true);head.setUint32(12,js.length,true);head.setUint32(16,0x4E4F534A,true);
+  const bh=new DataView(new ArrayBuffer(8));bh.setUint32(0,off,true);bh.setUint32(4,0x004E4942,true);
+  const blob=new Blob([head,js,bh,...partes],{type:"model/gltf-binary"});
+  window.__ultimoGLB={bytes:total,capas:nObj};
+  guardar(`antamina_modelo_conceptual_${nObj}capas.glb`,blob);
+}
+
+// ---------------------------------------------------------------- ficha general
+function construirFicha(){
+  const F=M.ficha,C=F.comprobaciones,R=F.referencias;
+  const filaS=Object.entries(F.solidos).map(([k,s])=>`<tr><td>${esc(s.nombre)}</td><td class="n">${s.archivo}</td><td class="n">${fmt(s.volumen_malla_Mm3)}</td><td class="n">${fmt(s.volumen_voxel_Mm3)}</td><td class="n">${s.bordes_abiertos}</td><td class="n">${s.bordes_no_manifold}</td><td>${s.reparado?`Sí (tenía ${s.bordes_antes_de_reparar[0]} bordes abiertos)`:"No"}</td></tr>`).join("");
+  const filaF=F.fallas.map(f=>`<tr><td><b>${esc(f.nombre)}</b></td><td>${esc(f.estado)}</td><td>${esc(f.rumbo)}</td><td>${esc(f.buzamiento)}</td><td>${esc(f.relacion)}</td><td>${esc(f.fuente)}</td></tr>`).join("");
+  const filaFS=F.fallas_descritas_sin_geometria.map(f=>`<tr><td><b>${esc(f.nombre)}</b></td><td>${esc(f.descripcion)}</td><td>${esc(f.motivo)}</td><td>${esc(f.fuente)}</td></tr>`).join("");
+  const filaU=M.capas.filter(c=>c.ficha.mineral||c.ficha.dimensiones||c.ficha.geometria).map(c=>`<tr><td><b>${esc(nombreCorto(c))}</b><br><span class="etq ${c.ficha.estado}">${TXT[c.ficha.estado]}</span></td><td>${esc(c.ficha.mineral||"—")}</td><td>${esc(c.ficha.dimensiones||"—")}</td><td>${esc(c.ficha.geometria||"")}</td></tr>`).join("");
+  const sol=C.solapes_litologia,sec=C.seccion_vs_3D,cc=C.contactos_compartidos||{};
+  const dom=Object.entries(F.bloques.por_dominio).map(([k,v])=>`<tr><td>${esc(M.leyenda.dominio.find(d=>d[1]===k)[2])}</td><td class="n">${v.bloques.toLocaleString("es-PE")}</td><td class="n">${v.Mt.toLocaleString("es-PE")}</td><td class="n">${fmt(v.Cu_medio_SINT)}</td></tr>`).join("");
+  const ccTxt=Object.entries(cc).map(([k,v])=>`${({lit:"litologías",zon:"zonación",dom:"dominios"})[k]}: ${v.caras_de_contacto.toLocaleString("es-PE")} caras compartidas`).join(" · ");
+  $("#ficha").innerHTML=`
+  <div><h2>Modelo geológico conceptual de Antamina: ficha</h2><p class="nota">${esc(F.sistema_coordenadas)}</p></div>
+  <div><h3>Supuestos del modelo</h3><div class="tabla"><table><tr><th>Elemento</th><th>Procedencia</th><th>Detalle</th></tr>
+  <tr><td>Tipo de depósito, zonación, mineralogía</td><td><span class="etq f">fuente</span></td><td>Skarn de granate; zonación endoskarn → granate pardo → granate verde → diópsido → wollastonita → hornfels → mármol (LS2005 p. 195, figs. 5 y 6); metales Mo → Cu → Cu-Zn → Cu(bornita)-Zn-Bi → Ag-Pb-Zn (LS2005 pp. 200–201; R1999; PG).</td></tr>
+  <tr><td>Cotas del valle y las crestas</td><td><span class="etq f">fuente</span></td><td>Fondo del valle 4200 → 4100 m; crestas 4640–5073 m (LS2005 p. 193).</td></tr>
+  <tr><td>Tamaño del stock y los espolones</td><td><span class="etq f">fuente</span></td><td>800 × 750 m a 3900 m, elongado al NE; espolón NE 350 × 150 m; espolón SW 500 × 50–170 m; 1700 m en total (LS2005 p. 197).</td></tr>
+  <tr><td>Espesor del caparazón de skarn</td><td><span class="etq f">fuente</span></td><td>300–400 m alrededor de los intrusivos; de 70 a 800 m en niveles altos (LS2005 p. 197).</td></tr>
+  <tr><td>Anchos de los dominios</td><td><span class="etq f">fuente</span></td><td>Zn y Bi a menos de 70 m del contacto granate verde/caliza (LS2005 p. 200); halo Cu-Zn de 100–200 m arriba y de 20–50 m en profundidad; zona de bornita de ~400 m × ≤160 m en el centro-SE (PG).</td></tr>
+  <tr><td>Forma de los dominios mineralizados</td><td><span class="etq i">interpretado</span></td><td>Volúmenes definidos por la distancia al contacto del intrusivo y por la cota. Siguen la zonación descrita, pero no vienen de sondajes ni de ensayes.</td></tr>
+  <tr><td>Forma de los contactos, techo, diques, cabalgamiento, Fm. Celendín</td><td><span class="etq i">interpretado</span></td><td>Funciones paramétricas editables en <code>parametros.json</code>: contacto del intrusivo ondulado ±30 m e inclinado al SE bajo 3900 m; exoskarn más grueso a lo largo del eje NE; wollastonita que termina hacia el N; halo Ag-Pb-Zn discontinuo; cabalgamiento rampa-rellano. No hay cartografía ni sondajes reales.</td></tr>
+  <tr><td>Coordenadas x-y</td><td><span class="etq i">interpretado</span></td><td>Sistema local centrado en el depósito, no georreferenciado. Los ejes de la planta y del perfil lo indican.</td></tr>
+  <tr><td>Tajo: fondo en dos lóbulos a 3860 m, bancos de ${F.tajo.bancos.altura_m} m (cara de ${F.tajo.bancos.cara_grados}°, ${fmt(F.tajo.bancos.ancho_cara_m)} m en planta), bermas de ${F.tajo.bancos.berma_m} m, rampa de ${F.tajo.rampa.ancho_m} m al ${fmt(F.tajo.rampa.pendiente*100)} %</td><td><span class="etq s">sintético</span></td><td>Trazado y dimensiones supuestos; no es el tajo real. Huella ${fmt(F.tajo.huella_km2)} km², profundidad máxima ${fmt(F.tajo.profundidad_max_m)} m, talud entre rampas ${fmt(F.tajo.bancos.talud_entre_rampas_grados)}°, rampa de ${fmt(F.tajo.rampa.vueltas)} vueltas (${fmt(F.tajo.rampa.largo_dentro_del_tajo_m)} m dentro del tajo, pendiente medida ${fmt(F.tajo.rampa.pendiente_media_medida*100)} %). Volumen excavado ${fmt(F.tajo.volumen_excavado_Mm3)} Mm³ (~${fmt(F.tajo.toneladas_aprox_Mt)} Mt a 2,8 t/m³). Puntos de la superficie excavada por encima de la premina: ${F.tajo.puntos_excavada_sobre_premina}.</td></tr>
+  <tr><td>Sondajes SYN-01 a SYN-24</td><td><span class="etq s">sintético</span></td><td>Trayectorias e intervalos de 15 m muestreados del propio modelo, para mostrar cómo se importan y se cortan.</td></tr>
+  <tr><td>Ley de Cu</td><td><span class="etq s">sintético</span></td><td>Atributo numérico independiente de la litología: función de la distancia al contacto más ruido. La capa está apagada al abrir el modelo.</td></tr>
+  <tr><td>Falla H-1</td><td><span class="etq h">hipotética</span></td><td>Falla normal con un salto de ${M.ficha.parametros.falla_hipotetica.salto} m para mostrar el corte y el desplazamiento.</td></tr>
+  </table></div></div>
+  <div><h3>Fuente e interpretación por unidad</h3><div class="tabla"><table><tr><th>Unidad</th><th>Fuente de la asociación mineral</th><th>Fuente de la orientación o las dimensiones</th><th>Carácter de la geometría</th></tr>${filaU}</table></div></div>
+  <div><h3>Fallas modeladas</h3><div class="tabla"><table><tr><th>Falla</th><th>Estado</th><th>Rumbo</th><th>Buzamiento</th><th>Relación con el depósito</th><th>Fuente</th></tr>${filaF}</table></div></div>
+  <div><h3>Fallas descritas sin geometría conocida (no se modelan)</h3><div class="tabla"><table><tr><th>Estructura</th><th>Descripción</th><th>Por qué no se modela</th><th>Fuente</th></tr>${filaFS}</table></div></div>
+  <div><h3>Comprobaciones del script</h3><div class="tabla"><table><tr><th>Prueba</th><th>Resultado</th></tr>
+  <tr><td>Contactos compartidos (SurfaceNets multi-etiqueta)</td><td>Cada cara de contacto es la misma para las dos unidades vecinas: separación 0 m. ${ccTxt}</td></tr>
+  <tr><td>Sólidos cerrados (archivos VTP)</td><td>${Object.values(F.solidos).filter(s=>s.bordes_abiertos===0).length} de ${Object.keys(F.solidos).length} sin bordes abiertos. ${Object.values(F.solidos).filter(s=>s.reparado).length} se repararon: SurfaceNets deja huecos de una celda donde la unidad es más delgada que la celda, junto a la superficie. En el visor esos huecos de ~15 m siguen en la malla compartida.</td></tr>
+  <tr><td>Solapes entre litologías (${sol.puntos.toLocaleString("es-PE")} puntos al azar, prueba de punto interior en cada malla)</td><td>${sol.puntos_en_2_o_mas_solidos} puntos en dos sólidos (${(sol.fraccion_solape*100).toFixed(3).replace(".",",")} %); ${sol.solape_lejos_de_contactos} solapes y ${sol.huecos_en_roca_lejos_de_contactos} huecos lejos de los contactos</td></tr>
+  <tr><td>Malla contra función de clasificación (lejos de los contactos)</td><td>${(sol.coincidencia_malla_vs_funcion_lejos_de_contactos*100).toFixed(2).replace(".",",")} % de coincidencia</td></tr>
+  <tr><td>Sección A–A′ por defecto contra los sólidos 3D</td><td>Contactos a ${sec.distancia_max_contactos_al_plano_m} m del plano; error p95 contra la función entre ${Math.min(...Object.values(sec.error_p95_contacto_vs_funcion_m)).toFixed(1).replace(".",",")} y ${Math.max(...Object.values(sec.error_p95_contacto_vs_funcion_m)).toFixed(1).replace(".",",")} m (celda ${F.parametros.celda_m} m)</td></tr>
+  </table></div></div>
+  <div><h3>Sólidos exportados</h3><div class="tabla"><table><tr><th>Unidad</th><th>Archivo</th><th>Vol. malla Mm³</th><th>Vol. vóxel Mm³</th><th>Bordes abiertos</th><th>No-manifold</th><th>Reparado en el VTP</th></tr>${filaS}</table></div></div>
+  <div><h3>Modelo de bloques (celda ${F.bloques.celda_m} m, densidad asumida ${fmt(F.bloques.densidad_asumida)} t/m³)</h3>
+  <p class="nota" style="margin-bottom:8px">Tonelajes bajo la superficie actual. La ley es SINTÉTICA: estos promedios solo describen la capa de demostración y no son recursos. Como referencia publicada, Lipten y Smith citan más de 3000 Mt con 1,1 % Cu y 1,3 % Zn (LS2005 p. 189).</p>
+  <div class="tabla"><table><tr><th>Dominio</th><th>Bloques</th><th>Mt</th><th>Cu medio SINTÉTICO %</th></tr>${dom}</table></div></div>
+  <div><h3>Contradicción entre fuentes</h3><p>Redwood (1999) sitúa el skarn en la Fm. Celendín, engrosada en un dúplex bajo el cabalgamiento del Jumasha. PorterGeo atribuye cerca del 75 % del exoskarn al reemplazo de la Fm. Jumasha, y Lipten y Smith hablan de mineralización en las formaciones Celendín y Jumasha (LS2005 p. 189). El modelo deja que el caparazón de skarn corte ambas formaciones y no fija la proporción.</p></div>
+  <div><h3>Datos que reemplazarían lo ilustrativo</h3><div class="tabla"><table><tr><th>Archivo</th><th>Formato</th><th>Reemplaza</th></tr>
+  <tr><td>Topografía pre-mina y levantamiento actual del tajo</td><td>DXF/DWG de curvas, GeoTIFF o LAS (LiDAR/dron), UTM WGS84 18S</td><td><code>topo_premina()</code>, <code>tajo_cota()</code> y el volumen excavado</td></tr>
+  <tr><td>Cartografía geológica de superficie y de bancos</td><td>SHP/GeoPackage con contactos, litologías y estructuras con rumbo y buzamiento</td><td>Formas del intrusivo, skarn, cabalgamiento y fallas</td></tr>
+  <tr><td>Sondajes: collar, survey, litología, alteración, mineralogía</td><td>CSV (hole_id, x, y, z; prof, azimut, inclinación; desde, hasta, código)</td><td>Sondajes sintéticos; contactos por interpolación implícita (RBF o kriging de distancias firmadas)</td></tr>
+  <tr><td>Ensayes Cu, Zn, Mo, Ag, Bi y densidad</td><td>CSV de intervalos con QA/QC</td><td>Ley sintética; estimación por kriging ordinario por dominio, con variografía y validación cruzada</td></tr>
+  <tr><td>Modelo de bloques y sólidos de recursos de la compañía</td><td>CSV de bloques, DXF/OBJ/VTK de sólidos</td><td>Dominios mineralizados</td></tr>
+  </table></div></div>
+  <div><h3>Vistas previas renderizadas por el script (PyVista y matplotlib)</h3><div class="prev">
+    <figure><img src="previas/bloque3d_litologia.png" alt="Bloque 3D cortado con litologías" loading="lazy"><figcaption>Bloque 3D cortado por un plano E-O: litologías <button class="btn" data-abrir="lit">Abrir en 3D</button></figcaption></figure>
+    <figure><img src="previas/bloque3d_dominios.png" alt="Bloque 3D con dominios mineralizados" loading="lazy"><figcaption>Dominios mineralizados alrededor del intrusivo <button class="btn" data-abrir="dom">Abrir en 3D</button></figcaption></figure>
+    <figure><img src="previas/bloque3d_ley_cu_sintetica.png" alt="Bloques con ley de Cu sintética" loading="lazy"><figcaption>Capa opcional de ley de Cu sintética <button class="btn" data-abrir="cu">Abrir en 3D</button></figcaption></figure>
+    <figure><img src="previas/seccion_AA_y_planta.png" alt="Sección A-A' y planta" loading="lazy"><figcaption>Sección A–A′ y planta con la traza del corte <button class="btn" data-abrir="sec">Abrir la sección</button></figcaption></figure>
+  </div></div>
+  <div><h3>Referencias</h3><ul>${Object.entries(R).map(([k,v])=>`<li><b>${k}</b>: ${esc(v)}</li>`).join("")}</ul>
+  <p class="nota">Lipten y Smith (2005) y Redwood (1999) se leyeron en texto completo; las páginas citadas son las de Lipten y Smith. Love et al. (2004) y Mrozek (2018) solo se consultaron por sus resúmenes; de Mrozek viene el buzamiento subvertical de la Falla del Valle.</p></div>`;
+}
+const fmt=v=>(+v).toLocaleString("es-PE",{maximumFractionDigits:2});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-abrir]");if(!b)return;const m=b.dataset.abrir;if(m==="sec"){$("#t-sec").click();return}abrir3D(m)});
+
+// ---------------------------------------------------------------- pruebas (consola): window.__prueba()
+window.__prueba=()=>{
+  const firma=cv=>{const d=cv.getContext("2d").getImageData(0,0,cv.width,cv.height).data;let h=0;for(let i=0;i<d.length;i+=97)h=(h*31+d[i])>>>0;return h};
+  const tapa=()=>planoSec?firma(planoSec.material.map.image):0;
+  return{firma,tapa,corte:()=>CORTE,sel:()=>SEL,capas:()=>Object.keys(capas)};
+};
+</script>

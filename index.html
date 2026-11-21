@@ -229,10 +229,25 @@ aside#panel.modo-expo>details#leyPanel{display:block!important}
 .brujula{background:color-mix(in srgb,#000 30%,transparent);border-color:transparent;color:#eef2f4}
 .grupo h3{text-transform:none;letter-spacing:0;font:600 13px var(--f-body);color:var(--ink)}
 .capa{font-size:12.5px}
+.tarjetaPunto{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.filaPunto{display:flex;gap:8px;align-items:flex-start;text-align:left;width:100%;padding:7px 9px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;font:inherit;font-size:13px}
+.filaPunto.on{border-color:var(--acc);box-shadow:inset 3px 0 0 var(--acc)}
+.filaPunto small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+.filaPunto .sw{margin-top:3px}
+.marcaP{position:absolute;width:18px;height:18px;border-radius:50%;border:3px solid #fff;background:var(--acc);box-shadow:0 0 0 2px rgba(0,0,0,.55);transform:translate(-50%,-50%);pointer-events:none;display:none;z-index:4}
+#barraCorte:not(:has(#cOn:checked)) label:has(input[type=range]),#barraCorte:not(:has(#cOn:checked)) #cInfo{display:none}
 /* presentación: visor ampliado, solo recorrido, leyenda activa y salida */
 body.presentacion #cab nav,body.presentacion #cab .marca span,body.presentacion #barraCorte,body.presentacion #b-panel,body.presentacion #b-inicio,body.presentacion .mas,body.presentacion #b-tour{display:none!important}
 body.presentacion #cab{padding-block:6px}
 body.presentacion aside#panel{width:clamp(280px,22vw,340px)}
+body.presentacion #barraHerr{display:none!important}
+body.presentacion #etqSint{position:fixed;top:56px;left:16px;z-index:30}
+body.presentacion aside#panel{width:clamp(340px,27vw,440px);font-size:16px}
+body.presentacion #expoT{font-size:24px}
+body.presentacion #expoX{font-size:18px;line-height:1.45}
+body.presentacion #expoEtapas button{font-size:16px!important;padding:9px 14px}
+body.presentacion #leyCont .it{font-size:15px}
+body.presentacion .marcaA{font-size:22px}
 body.presentacion #b-present{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
 @media (max-width:820px){aside#panel{width:auto} .mas{margin-left:0} .cabAcc{margin-left:0} #cab nav{margin-left:0}}
 </style>
@@ -281,7 +296,7 @@ body.presentacion #b-present{background:var(--acc);border-color:var(--acc);color
       <div class="sobre etqComp" id="compDer"><select id="selDer" aria-label="Vista derecha"><option value="lit">Litologías</option><option value="dom" selected>Dominios</option><option value="cu">Ley de Cu sintética</option></select></div>
       <div class="sobre" id="escala" title="Escala aproximada en el centro de la vista"><i></i><span></span></div>
       <div class="sobre" id="tour" hidden><h4 id="tourT"></h4><p id="tourX"></p><div class="pie"><span id="tourN"></span><div class="der"><button id="tourAnt">Anterior</button><button id="tourSig">Siguiente</button><button id="tourSal">Explorar libremente</button></div></div></div>
-      <div class="marcaR" id="mFluidos">Flechas esquemáticas: fluidos (ilustrativo)</div><div class="marcaR" id="mAcceso">Acceso a la rampa</div><div class="marcaR" id="mFondo">Fondo del tajo</div>
+      <div class="marcaP" id="mPunto" aria-hidden="true"></div><div class="marcaR" id="mFluidos">Flechas esquemáticas: fluidos (ilustrativo)</div><div class="marcaR" id="mAcceso">Acceso a la rampa</div><div class="marcaR" id="mFondo">Fondo del tajo</div>
     </div>
     <aside id="panel">
       <details id="expo" open><summary>Recorrido guiado · <span id="expoN"></span></summary>
@@ -403,14 +418,14 @@ const FICHA_UNIDAD={
     geometria:"Interpretada: lo que queda del caparazón entre el granate pardo y la wollastonita."},
   wollastonita_diopsido:{litologia:"Exoskarn de wollastonita y diópsido (distal)",estado:"i",
     mineral:"Zona interna de wollastonita con mena de bornita y zona externa, junto al mármol, con bornita-esfalerita (LS2005 p. 198).",
-    dimensiones:"La bornita (≈8 % del Cu) se asocia a la wollastonita en el extremo sur del depósito (LS2005 p. 201).",
+    dimensiones:"La bornita (≈8 % del Cu) se asocia a la wollastonita en el extremo sur del depósito (LS2005 p. 203).",
     geometria:"Interpretada: franja más ancha al S (hasta ~80 m) que se adelgaza y termina hacia el N."},
   dom_Mo:{litologia:"Intrusivo (pórfido de cuarzo-monzonita) y endoskarn",estado:"i",
     mineral:"Molibdenita confinada sobre todo al núcleo intrusivo y al endoskarn (LS2005 p. 200).",
     dimensiones:"Sin dimensiones publicadas.",
-    geometria:"Interpretada: núcleo de 160 m ±30 % bajo el endoskarn que termina hacia arriba cerca de los 4230 m."},
+    geometria:"Interpretada y simplificada: banda de 160 m ±30 % en el borde interno del intrusivo, bajo el endoskarn, que termina hacia arriba cerca de los 4230 m. La fuente incluye también el endoskarn (LS2005 p. 200), que el modelo asigna al dominio de Cu."},
   dom_Cu:{litologia:"Endoskarn y exoskarn de granate pardo y verde",estado:"f",
-    mineral:"Calcopirita como sulfuro de Cu predominante (LS2005 p. 201).",
+    mineral:"Calcopirita como sulfuro de Cu predominante (LS2005 p. 203).",
     dimensiones:"El Cu se reparte de forma bastante uniforme desde el endoskarn hasta el contacto con la caliza (LS2005 p. 200, fig. 9).",
     geometria:"Interpretada: el skarn menos los halos Cu-Zn, bornita y Mo; no viene de sondajes."},
   dom_CuZn:{litologia:"Exoskarn de granate verde y diópsido, junto al mármol u hornfels",estado:"f",
@@ -418,11 +433,11 @@ const FICHA_UNIDAD={
     dimensiones:"Halo de 100–200 m en niveles altos y de 20–50 m en profundidad (PG).",
     geometria:"Interpretada: el ancho varía con la cota entre esos valores, ±30 %."},
   dom_CuBn_Zn_Bi:{litologia:"Exoskarn de wollastonita y granate verde",estado:"f",
-    mineral:"Bornita, esfalerita y sulfosales de Bi (LS2005 pp. 198 y 201).",
-    dimensiones:"Cerca del 8 % del Cu está como bornita en el extremo sur (LS2005 p. 201); zona de ~400 m × ≤160 m en el centro-SE (PG).",
+    mineral:"Bornita, esfalerita y sulfosales de Bi (LS2005 pp. 198 y 203).",
+    dimensiones:"Cerca del 8 % del Cu está como bornita en el extremo sur (LS2005 p. 203); zona de ~400 m × ≤160 m en el centro-SE (PG).",
     geometria:"Interpretada: posición y forma recortadas por el skarn."},
   dom_AgPbZn:{litologia:"Mármol, hornfels y mantos o vetas de skarn",estado:"i",
-    mineral:"Vetas y mantos periféricos ricos en Pb, Zn y Ag, sin Cu ni molibdenita (LS2005 p. 201); Pb en el exoskarn de granate verde, de diópsido y el hornfels (LS2005 p. 200).",
+    mineral:"Vetas y mantos periféricos ricos en Pb, Zn y Ag, sin Cu ni molibdenita (LS2005 p. 203); Pb en el exoskarn de granate verde, de diópsido y el hornfels (LS2005 p. 200).",
     dimensiones:"Sin dimensiones publicadas.",
     geometria:"Interpretada: halo de 50 m con interrupciones, para representar vetas y mantos discontinuos."},
   falla_cabalgamiento:{estado:"i",
@@ -538,7 +553,7 @@ function iniciar3D(){
     const lz=$("#lienzo3d");if(lz.clientWidth!==TAM[0]||lz.clientHeight!==TAM[1])redimensionar();
     pasoVuelo();ctrl.update();
     cam.getWorldDirection(v);$("#flechaN").style.transform=`rotate(${Math.atan2(v.x,-v.z)*-180/Math.PI}deg)`;
-    pasoAnimacion();renderizar();marcasA();marcasRampa();actualizarEscala()})();
+    pasoAnimacion();renderizar();marcasA();marcaPunto();marcasRampa();actualizarEscala()})();
 }
 let VUELO=null;
 function vuelo(fn,ms=1500){   // aplica un encuadre con una transición suave de cámara
@@ -564,7 +579,7 @@ function texturaRoca(){   // grano mate de roca, repetido cada 90 m
   const cv=document.createElement("canvas");cv.width=cv.height=256;const ctx=cv.getContext("2d");
   const s=document.createElement("canvas");s.width=s.height=32;const sc=s.getContext("2d"),im=sc.createImageData(32,32);
   let a=12345;const rnd=()=>(a=(a*1103515245+12345)&0x7fffffff)/0x7fffffff;
-  for(let i=0;i<im.data.length;i+=4){const v=200+rnd()*55;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}sc.putImageData(im,0,0);
+  for(let i=0;i<im.data.length;i+=4){const v=210+rnd()*35;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}sc.putImageData(im,0,0);
   ctx.imageSmoothingEnabled=true;ctx.drawImage(s,0,0,256,256);
   const g=ctx.getImageData(0,0,256,256);for(let i=0;i<g.data.length;i+=4){const v=g.data[i]*(0.9+rnd()*0.1);g.data[i]=g.data[i+1]=g.data[i+2]=v}ctx.putImageData(g,0,0);
   const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;return t;
@@ -573,11 +588,19 @@ function ruido2(x,y){   // ruido de valor suave (0..1), sin patrón repetido vis
   const h=(i,j)=>{let n=(i*374761393+j*668265263)|0;n=(n^(n>>>13))*1274126177|0;return((n^(n>>>16))>>>0)/4294967295};
   const i=Math.floor(x),j=Math.floor(y),u=x-i,v=y-j,su=u*u*(3-2*u),sv=v*v*(3-2*v);
   return(h(i,j)*(1-su)+h(i+1,j)*su)*(1-sv)+(h(i,j+1)*(1-su)+h(i+1,j+1)*su)*sv}
+function materialTerreno(op){   // el detalle de banco (color y normal finos) se funde con su versión suave a partir de ~1,3 km de la cámara
+  const m=new THREE.MeshStandardMaterial(op);
+  m.onBeforeCompile=sh=>{sh.uniforms.uFade={value:new THREE.Vector2(1300,3300)};
+    sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nattribute vec3 colSuave;\nattribute vec3 norSuave;\nuniform vec2 uFade;")
+      .replace("#include <color_vertex>","#include <color_vertex>\nfloat fdT=0.9*smoothstep(uFade.x,uFade.y,-(modelViewMatrix*vec4(position,1.0)).z);\nvColor.rgb=mix(vColor.rgb,colSuave,fdT);")
+      .replace("#include <beginnormal_vertex>","vec3 objectNormal=normalize(mix(vec3(normal),norSuave,fdT));\n#ifdef USE_TANGENT\nvec3 objectTangent=vec3(tangent.xyz);\n#endif")};
+  m.customProgramCacheKey=()=>"terreno-fade";return m;
+}
 function geomSuperficie(c){
   const R=c.rejilla,P=c.P,n=P.length/3,pos=new Float32Array(P.length),uv=new Float32Array(n*2),col=new Float32Array(P.length),cl=u8(...R.clase);
   const C=k=>new THREE.Color(k);
   const nat=[C("#8c8a68"),C("#7b7a5e"),C("#857c6c"),C("#6f6c5a")],   // puna, puna húmeda, roca expuesta, quebrada
-        tajo={1:C("#756d61"),2:C("#958b7c"),3:C("#7b7366"),4:C("#b29667"),5:C("#4a453d"),6:C("#857c6f")};   // berma, cara, borde, rampa, borde de rampa, fondo
+        tajo={1:C("#756d61"),2:C("#958b7c"),3:C("#7b7366"),4:C("#ab936a"),5:C("#6b6152"),6:C("#857c6f")};   // berma, cara, borde, rampa, borde de rampa, fondo
   const t=new THREE.Color(),Z=k=>P[3*k+2];
   // tinte de la roca expuesta según la unidad en superficie (planta de 20 m): «estratificación» sugerida, ilustrativa
   const PL=M.planta,litP=u8(...PL.lit),TINTE={1:C("#b3a29f"),2:C("#9d7563"),3:C("#8f9069"),4:C("#9aa0a3"),5:C("#a29b8c"),6:C("#949ba0")};
@@ -587,7 +610,7 @@ function geomSuperficie(c){
     tin.setRGB(0,0,0);let s=0;for(const[di,dj,pe]of[[0,0,(1-u)*(1-w)],[1,0,u*(1-w)],[0,1,(1-u)*w],[1,1,u*w]]){const c=litP[(j+dj)*PL.nx+i+di];if(!c)continue;tq.copy(TINTE[c]).multiplyScalar(pe);tin.add(tq);s+=pe}
     return s>0.2?tin.multiplyScalar(1/s):null};
   for(let j=0;j<R.ny;j++)for(let i=0;i<R.nx;i++){const k=j*R.nx+i,x=P[3*k],y=P[3*k+1],z=P[3*k+2];
-    pos[3*k]=x;pos[3*k+1]=z-Z0;pos[3*k+2]=-y;uv[2*k]=x/36;uv[2*k+1]=y/36;
+    pos[3*k]=x;pos[3*k+1]=z-Z0;pos[3*k+2]=-y;uv[2*k]=x/18;uv[2*k+1]=(y+z)/18;
     const c0=cl[k];
     if(c0===0){   // terreno natural: laderas, roca expuesta en lo empinado, quebradas más oscuras y variación a gran escala
       const i1=Math.min(i+3,R.nx-1),i0=Math.max(i-3,0),j1=Math.min(j+3,R.ny-1),j0=Math.max(j-3,0);
@@ -602,16 +625,21 @@ function geomSuperficie(c){
       // sombra suave en los cambios de pendiente: pie de banco (cóncavo) más oscuro, borde (convexo) apenas más claro
       const i1=Math.min(i+1,R.nx-1),i0=Math.max(i-1,0),j1=Math.min(j+1,R.ny-1),j0=Math.max(j-1,0);
       const lap=(Z(j*R.nx+i1)+Z(j*R.nx+i0)+Z(j1*R.nx+i)+Z(j0*R.nx+i)-4*z)/4;
-      t.multiplyScalar(Math.min(1.05,Math.max(0.66,1-0.06*lap)));
+      t.multiplyScalar(Math.min(1.03,Math.max(0.8,1-0.035*lap)));
       t.multiplyScalar(0.94+0.1*ruido2(x/45+3,y/45+5))}
     col[3*k]=t.r;col[3*k+1]=t.g;col[3*k+2]=t.b}
   const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pos,3));g.setAttribute("uv",new THREE.BufferAttribute(uv,2));
   g.setAttribute("color",new THREE.BufferAttribute(col,3));g.setIndex(new THREE.BufferAttribute(c.I,1));
-  const nor=new Float32Array(P.length);
-  for(let j=0;j<R.ny;j++)for(let i=0;i<R.nx;i++){const k=j*R.nx+i,i1=Math.min(i+3,R.nx-1),i0=Math.max(i-3,0),j1=Math.min(j+3,R.ny-1),j0=Math.max(j-3,0);
-    const zx=(Z(j*R.nx+i1)-Z(j*R.nx+i0))/((i1-i0)*R.paso),zy=(Z(j1*R.nx+i)-Z(j0*R.nx+i))/((j1-j0)*R.paso),L=Math.hypot(zx,zy,1);
-    nor[3*k]=-zx/L;nor[3*k+1]=1/L;nor[3*k+2]=zy/L}
-  g.setAttribute("normal",new THREE.BufferAttribute(nor,3));return g;
+  // normales: finas (±1 celda) en el tajo para que caras y bermas se lean por la luz de cerca; suaves (±3) para la distancia
+  const nor=new Float32Array(P.length),norS=new Float32Array(P.length);
+  const normal=(i,j,r,out,k)=>{const i1=Math.min(i+r,R.nx-1),i0=Math.max(i-r,0),j1=Math.min(j+r,R.ny-1),j0=Math.max(j-r,0);
+    const zx=(Z(j*R.nx+i1)-Z(j*R.nx+i0))/((i1-i0)*R.paso),zy=(Z(j1*R.nx+i)-Z(j0*R.nx+i))/((j1-j0)*R.paso),L=Math.hypot(zx,zy,1);out[3*k]=-zx/L;out[3*k+1]=1/L;out[3*k+2]=zy/L};
+  for(let j=0;j<R.ny;j++)for(let i=0;i<R.nx;i++){const k=j*R.nx+i;normal(i,j,cl[k]?1:3,nor,k);normal(i,j,3,norS,k)}
+  // color suavizado (±2 celdas, dos pasadas) para la distancia
+  const tmp=new Float32Array(P.length),colS=new Float32Array(P.length),rad=2;
+  for(let j=0;j<R.ny;j++)for(let i=0;i<R.nx;i++){let a=0,b=0,c=0,n=0;for(let d=-rad;d<=rad;d++){const ii=Math.min(R.nx-1,Math.max(0,i+d)),q=3*(j*R.nx+ii);a+=col[q];b+=col[q+1];c+=col[q+2];n++}const q=3*(j*R.nx+i);tmp[q]=a/n;tmp[q+1]=b/n;tmp[q+2]=c/n}
+  for(let j=0;j<R.ny;j++)for(let i=0;i<R.nx;i++){let a=0,b=0,c=0,n=0;for(let d=-rad;d<=rad;d++){const jj=Math.min(R.ny-1,Math.max(0,j+d)),q=3*(jj*R.nx+i);a+=tmp[q];b+=tmp[q+1];c+=tmp[q+2];n++}const q=3*(j*R.nx+i);colS[q]=a/n;colS[q+1]=b/n;colS[q+2]=c/n}
+  g.setAttribute("normal",new THREE.BufferAttribute(nor,3));g.setAttribute("norSuave",new THREE.BufferAttribute(norS,3));g.setAttribute("colSuave",new THREE.BufferAttribute(colS,3));return g;
 }
 function redimensionar(){if(!rend)return;const c=$("#lienzo3d"),w=c.clientWidth,h=c.clientHeight;if(!w||!h)return;
   TAM=[w,h];rend.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();
@@ -638,7 +666,7 @@ function crearCapa(c){
     const mat=new THREE.MeshLambertMaterial({color:c.color,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:c.grupo==="Litologias"?1:-1,polygonOffsetUnits:c.grupo==="Litologias"?1:-1});
     obj=new THREE.Mesh(geomCompartida(c),mat);
   }else if(c.tipo==="rejilla"){
-    obj=new THREE.Mesh(geomSuperficie(c),new THREE.MeshStandardMaterial({vertexColors:true,map:texturaRoca(),roughness:1,metalness:0,flatShading:false,
+    obj=new THREE.Mesh(geomSuperficie(c),materialTerreno({vertexColors:true,map:texturaRoca(),roughness:1,metalness:0,flatShading:false,
       side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-6}));
   }else if(c.tipo==="malla"){
     const g=geomMalla(c);let mat;
@@ -694,13 +722,14 @@ function vistaFrente(){   // encuadra solo la mitad que queda tras el corte, vis
   encuadrar([cx,cy,4120],[-G.n[0]*0.9-G.d[0]*0.25,-G.n[1]*0.9-G.d[1]*0.25,0.62],esq)}
 function marcarEncuadre(m){$("#b-tajo").setAttribute("aria-pressed",m==="tajo");$("#b-geo").setAttribute("aria-pressed",m==="geo")}
 function encuadreTajo(){
-  detenerAnimacion();$("#cOn").checked=false;
+  detenerAnimacion();if(typeof fijarPunto==="function")fijarPunto(null);$("#cOn").checked=false;
   for(const c of M.capas){if(["Zonacion del exoskarn","Dominios mineralizados","Leyes","Sondajes","Litologias","Fallas"].includes(c.grupo)||c.clave==="excavado")fijarVisible(c.clave,false)}
   fijarVisible("superficie",true);fijarOpacidad("superficie",1);luces("tajo");
   // vista aérea oblicua desde el SE, perpendicular al eje NE del tajo: se ven los bancos, el fondo y la rampa
   const H=HUELLA,cx=(H.x0+H.x1)/2,cy=(H.y0+H.y1)/2,esq=[];
   for(const q of H.borde)esq.push(q);esq.push([cx,cy,H.zmin]);
-  encuadrar([cx,cy,H.zmin+170],[0.5,-0.72,0.62],esq,0.78,0.74);   // tajo completo con terreno alrededorniebla(true);marcarEncuadre("tajo");trasCambioCapas();leyenda3D();
+  encuadrar([cx,cy,H.zmin+170],[0.45,-0.66,0.72],esq,0.86,0.8);   // tajo completo con terreno alrededor
+  niebla(true);marcarEncuadre("tajo");trasCambioCapas();leyenda3D();
 }
 function niebla(on){   // en la vista aérea difumina los bordes lejanos del bloque
   if(!on){escena.fog=null;return}const d=cam.position.distanceTo(ctrl.target);escena.fog=new THREE.Fog(new THREE.Color(css("--canvas")||"#0e1318"),d*1.05,d*2.1)}
@@ -759,6 +788,42 @@ function pasoAnimacion(){
 }
 function pausarAnimacion(){if(!ANIM)return;ANIM.pausa=!ANIM.pausa;$("#b-pausa").textContent=ANIM.pausa?"Continuar":"Pausa"}
 function detenerAnimacion(){if(!ANIM)return;const fin=ANIM.t>=ANIM.dur;ANIM=null;$("#b-pausa").hidden=true;$("#b-revelar").setAttribute("aria-pressed",false);if(!fin)actualizarCorte()}
+// ===================================================================== UN PUNTO, TRES LECTURAS
+let PUNTO=null;   // punto elegido en la cara del corte (coordenadas locales); se proyecta sobre el plano cuando A–A′ se mueve
+function lecturaEn(p){
+  const G=CORTE;if(!G||!G.vis)return null;const it=Math.round(tDe(p[0],p[1])/RES),kz=Math.round((p[2]-ZMIN)/RES);
+  if(it<0||kz<0||it>=G.nt||kz>=G.nz)return null;const i=kz*G.nt+it;
+  return{lit:G.vis.lit[i],zon:G.vis.zon[i],dom:G.vis.dom[i],cu:G.cu[i]>=0?G.cu[i]:-1};
+}
+function fijarPunto(p){   // el punto se guarda ya proyectado sobre el plano (la cara está 0,6 m delante)
+  if(p&&CORTE){const s=CORTE.n[0]*p[0]+CORTE.n[1]*p[1]-CORTE.off;p=[p[0]-CORTE.n[0]*s,p[1]-CORTE.n[1]*s,p[2]]}
+  PUNTO=p?{x:p[0],y:p[1],z:p[2]}:null;actualizarPunto()}
+function actualizarPunto(){
+  if(!PUNTO||!CORTE||!$("#cOn").checked){$("#mPunto").style.display="none";if(PUNTO)PUNTO.p=null;return}
+  const G=CORTE,s=G.n[0]*PUNTO.x+G.n[1]*PUNTO.y-G.off;PUNTO.p=[PUNTO.x-G.n[0]*s,PUNTO.y-G.n[1]*s,PUNTO.z];PUNTO.desplazado=Math.abs(s)>2;
+  const h=tarjetaPunto();const d=$("#puntoTarjeta");if(d)d.innerHTML=h;
+  const e=$("#expoPunto");if(e)e.innerHTML=h;
+}
+function tarjetaPunto(){
+  if(!PUNTO||!PUNTO.p)return"";const L=lecturaEn(PUNTO.p);if(!L||!L.lit)return'<p class="nota">El punto quedó fuera de la roca en este corte.</p>';
+  const lit=M.capas.find(c=>c.clave===codigoAClave("lit",L.lit)),dk=L.dom?codigoAClave("dom",L.dom):null,dom=dk?M.capas.find(c=>c.clave===dk):null,md=dk?MIN_DOM[dk]:null;
+  const fila=(m,col,tit,val,det)=>`<button class="filaPunto${MODO===m?" on":""}" data-lectura="${m}"><span class="sw" style="background:${col}"></span><span><b>${tit}</b> ${esc(val)}<small>${det}</small></span></button>`;
+  const cu=L.cu>=0.2?L.cu.toFixed(2).replace(".",",")+" % Cu":"sin bloque (< 0,2 % Cu)";
+  return`<div class="tarjetaPunto"><p class="nota" style="margin:0 0 6px">Punto x ${Math.round(PUNTO.p[0])||0} · y ${Math.round(PUNTO.p[1])||0} · z ${Math.round(PUNTO.p[2])} m (local)${PUNTO.desplazado?" · proyectado sobre el plano actual":""}</p>`+
+    fila("lit",lit.color,"Roca:",nombreCorto(lit),`Asociación documentada: ${esc((lit.ficha.mineral||"—").split(" (LS")[0])}. Geometría: ${lit.ficha.estado==="f"?"dimensiones de fuente, forma interpretada":"interpretada"}.`)+
+    fila("dom",dom?dom.color:"#777","Dominio:",dom?nombreCorto(dom):"fuera de los dominios",md?`Mena: ${md.mena.join(", ")} · ganga: ${md.ganga.join(", ")} (fuente en la ficha). Límites: interpretados.`:"Sin dominio mineralizado en este punto.")+
+    fila("cu",L.cu>=0.2?colorLey(L.cu):"#777","Ley:",cu,"SINTÉTICA: generada por el script, no es dato ni estimación de Antamina.")+`</div>`;
+}
+document.addEventListener("click",e=>{const b=e.target.closest(".filaPunto");if(!b)return;const m=b.dataset.lectura;
+  if(ESC>=0&&ESCENAS[ESC].t==="Una sección, tres lecturas")irEtapa({lit:0,dom:1,cu:2}[m]);else setModo(m);actualizarPunto()});
+function marcaPunto(){const el=$("#mPunto");if(!PUNTO||!PUNTO.p||!$("#cOn").checked){el.style.display="none";return}
+  const v=new THREE.Vector3(...toV(PUNTO.p[0]-CORTE.n[0]*3,PUNTO.p[1]-CORTE.n[1]*3,PUNTO.p[2])).project(cam),c=$("#lienzo3d");
+  if(v.z>1||Math.abs(v.x)>1||Math.abs(v.y)>1){el.style.display="none";return}
+  el.style.display="block";el.style.left=((v.x+1)/2*c.clientWidth)+"px";el.style.top=((1-v.y)/2*c.clientHeight)+"px"}
+function puntoContacto(){   // punto del endoskarn junto al contacto (el mismo que usa el acercamiento)
+  const G=CORTE,cod=M.leyenda.lito.find(l=>l[1]==="endoskarn")[0];
+  for(let i=0;i<G.raster.lit.length;i++)if(G.raster.lit[i]===cod){const z=ZMIN+Math.floor(i/G.nt)*RES,t=(i%G.nt)*RES;if(z>3700&&z<3800&&G.raster.lit[i+2]===cod)return[G.A[0]+t*G.d[0],G.A[1]+t*G.d[1],z]}
+  return null}
 // ===================================================================== TRES LECTURAS DEL MISMO BLOQUE
 let MODO="lit",AISLADO=null,ANTERIOR=null;const COMP={on:false,izq:"lit",der:"dom",x:0.5};
 const LITOS=()=>M.capas.filter(c=>c.grupo==="Litologias"),DOMS=()=>M.capas.filter(c=>c.grupo==="Dominios mineralizados");
@@ -883,10 +948,10 @@ function modoCapas(m){
 }
 const MIN_DOM={   // 2-3 minerales por dominio, con la fuente de la ficha del modelo
   dom_Mo:{mena:["molibdenita","calcopirita (escasa)"],ganga:["cuarzo","feldespato K","biotita"],f:"Mena: LS2005 p. 200 (molibdenita en el núcleo intrusivo y el endoskarn). Ganga: ficha del dominio (LS2005; PG)."},
-  dom_Cu:{mena:["calcopirita","pirita"],ganga:["granate","diópsido"],f:"Mena: LS2005 p. 201 (calcopirita, sulfuro de Cu predominante). Ganga: LS2005 pp. 197–198."},
+  dom_Cu:{mena:["calcopirita","pirita"],ganga:["granate","diópsido"],f:"Mena: LS2005 p. 203 (calcopirita, sulfuro de Cu predominante). Ganga: LS2005 pp. 197–198."},
   dom_CuZn:{mena:["calcopirita","esfalerita"],ganga:["granate verde","diópsido"],f:"LS2005 p. 198 (granate verde con calcopirita-esfalerita; esfalerita 3–5 %) y p. 200 (Zn a menos de 70 m del contacto con la caliza)."},
-  dom_CuBn_Zn_Bi:{mena:["bornita","esfalerita","bismutinita"],ganga:["wollastonita","diópsido"],f:"LS2005 p. 198 (wollastonita con bornita y bornita-esfalerita) y p. 201 (≈8 % del Cu como bornita; minerales de Bi)."},
-  dom_AgPbZn:{mena:["galena","esfalerita","tennantita (con Ag)"],ganga:["calcita (mármol)"],f:"Mena: LS2005 p. 201 (vetas y mantos periféricos de Pb, Zn y Ag; Ag con galena y tennantita). Ganga: ficha del dominio (PG)."}
+  dom_CuBn_Zn_Bi:{mena:["bornita","esfalerita","bismutinita"],ganga:["wollastonita","diópsido"],f:"LS2005 p. 198 (wollastonita con bornita y bornita-esfalerita) y p. 203 (≈8 % del Cu como bornita; minerales de Bi)."},
+  dom_AgPbZn:{mena:["galena","esfalerita","tennantita (con Ag)"],ganga:["calcita (mármol)"],f:"Mena: LS2005 p. 203 (vetas y mantos periféricos de Pb, Zn y Ag; Ag con galena y tennantita). Ganga: ficha del dominio (PG)."}
 };
 function htmlMinerales(k){const d=MIN_DOM[k],c=M.capas.find(c=>c.clave===k);
   return`<div class="minerales"><div><b>Mena</b>${d.mena.join(", ")}</div><div><b>Ganga</b>${d.ganga.join(", ")}</div></div><p class="nota" style="margin:0">${esc(c.nombre)}: ${esc(d.f)} Forma del dominio: interpretada.</p>`}
@@ -949,12 +1014,12 @@ const ESCENAS=[
        $("#expoExtra").innerHTML=`<div class="doms">${M.leyenda.dominio.map(d=>`<button data-d="${d[1]}"><span class="sw" style="background:${d[3]}"></span>${esc(d[2])}</button>`).join("")}</div><div id="expoMin"></div>`;
        document.querySelectorAll(".doms button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".doms button").forEach(x=>x.setAttribute("aria-pressed",x===b));seleccionar(b.dataset.d);$("#expoMin").innerHTML=htmlMinerales(b.dataset.d)})}}]},
   {t:"Una sección, tres lecturas",f:"Litologías y zonación: LS2005 pp. 195–198. Dominios metálicos: LS2005 pp. 200–201 (figs. 9 y 10) y PG. Ley de Cu: SINTÉTICA, sin fuente; formas de dominios interpretadas.",
-   entrar(){resaltarRampa(false);flechas(false);etapaGeo("real");prepCorte(false);vuelo(()=>encuadreContacto(),1500)},
+   entrar(){resaltarRampa(false);flechas(false);etapaGeo("real");prepCorte(false);vuelo(()=>encuadreContacto(),1500);fijarPunto(puntoContacto())},
    salir(){setModo("lit")},
    etapas:[
-    {b:"Litologías",x:"El mismo punto del corte leído como rocas: intrusivo (rosado), endoskarn (rojo), exoskarn (verde) y calizas (azul). Responde a la pregunta «¿qué roca hay aquí?».",f(){setModo("lit")}},
-    {b:"Dominios mineralizados",x:"El mismo punto leído por metales: núcleo de Mo en el intrusivo, Cu en el skarn, halo Cu-Zn hacia la caliza y Ag-Pb-Zn en la periferia. Los límites son interpretados; la roca queda atenuada como contexto.",f(){setModo("dom")}},
-    {b:"Ley de Cu sintética",x:"El mismo punto con bloques de 30 m coloreados por ley de Cu. Es una capa SINTÉTICA de demostración: muestra cómo se vería un modelo de bloques, no datos de Antamina.",f(){setModo("cu")}}]},
+    {b:"¿Qué roca?",x:"Litologías: el punto marcado está en el endoskarn, junto al contacto con el intrusivo. Haz clic en otro punto de la cara para cambiarlo.",f(){setModo("lit");pintarExpoPunto()}},
+    {b:"¿Qué metal?",x:"Dominios mineralizados: el mismo punto, leído por la asociación de metales. Límites interpretados.",f(){setModo("dom");pintarExpoPunto()}},
+    {b:"¿Cuánto Cu?",x:"Ley de Cu SINTÉTICA en bloques de 30 m: cómo se vería un modelo de bloques; no es dato de Antamina.",f(){setModo("cu");pintarExpoPunto()}}]},
   {t:"Cómo se leen las fallas",f:"Cabalgamiento: LS2005 p. 191 (fig. 4) y p. 200; R1999. Falla del Valle: LS2005 p. 200 (figs. 7 y 8); buzamiento de M2018 (resumen). H-1: hipotética.",
    entrar(){resaltarRampa(false);flechas(false);etapaGeo("real");prepCorte(true);modoCapas("lit");vuelo(()=>vistaFrente(),1400)},
    salir(){fijarVisible("falla_hipotetica_H1",false);trasCambioCapas();$("#expoPla").hidden=$("#expoSec").hidden=true},
@@ -980,12 +1045,13 @@ function irEtapa(j){const E=ESCENAS[ESC];if(!E)return;ETP=j;PREGUNTA=null;
 function entrarPresentacion(){
   document.body.classList.add("presentacion");document.body.classList.remove("sin-panel");$("#b-present").textContent="Volver a explorar";$("#b-present").setAttribute("aria-pressed",true);
   if($("#v3d").hidden)$("#t-3d").click();$("#leyPanel").open=true;try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}
-  setTimeout(redimensionar,50);abrirExpo(0);
+  setTimeout(redimensionar,50);entrarPresentacion.abrio=ESC<0;if(ESC<0)abrirExpo(0);   // si ya había una escena abierta, se conserva
 }
 function salirPresentacion(){
   document.body.classList.remove("presentacion");$("#b-present").textContent="Presentación";$("#b-present").setAttribute("aria-pressed",false);
-  try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}cerrarExpo();setTimeout(redimensionar,50);
+  try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}if(entrarPresentacion.abrio)cerrarExpo();setTimeout(redimensionar,50);
 }
+function pintarExpoPunto(){$("#expoExtra").innerHTML='<div id="expoPunto"></div>';actualizarPunto()}
 function cerrarExpo(){
   if(ESC<0)return;if(ESCENAS[ESC].salir)ESCENAS[ESC].salir();ESC=-1;PREGUNTA=null;flechas(false);etapaGeo("real");resaltarFallas([]);
   $("#panel").classList.remove("modo-expo");$("#b-tour").setAttribute("aria-pressed",false);aviso("Exploración libre");
@@ -1033,7 +1099,7 @@ function clic3D(e){
   if($("#cOn").checked)hits=hits.filter(h=>h.object===planoSec||planoCorte.distanceToPoint(h.point)>=-1);
   if(!hits.length){seleccionar(null);return}
   const h=hits[0],p=[h.point.x,-h.point.z,h.point.y+Z0];
-  if(h.object===planoSec){const t=tDe(p[0],p[1]),k=fallaEnCorte(t,p[2],25)||unidadEnCorte(t,p[2],modoTapa());if(k)seleccionar(k,p);return}
+  if(h.object===planoSec){const t=tDe(p[0],p[1]),k=fallaEnCorte(t,p[2],25)||unidadEnCorte(t,p[2],modoTapa());if(k)seleccionar(k,p);fijarPunto(p);return}
   seleccionar(h.object.userData.capa.clave,p);
 }
 function resaltarFallas(claves){
@@ -1053,7 +1119,7 @@ function seleccionar(k,p){
   if(!k){$("#info").innerHTML='<p class="nota">Haz clic sobre una unidad, una falla o la cara del corte.</p>';$("#infoSec").innerHTML='<b class="t">Ficha de la unidad</b><p class="nota">Haz clic sobre una unidad.</p>';dibujarSeccion();return}
   const o=capas[k];if(o&&o.material.emissive)o.material.emissive.setHex(0x6b4300);
   const fila=document.querySelector(`.capa[data-k="${k}"]`);if(fila)fila.classList.add("sel");
-  const h=htmlFicha(M.capas.find(c=>c.clave===k),p);$("#info").innerHTML=h;$("#infoSec").innerHTML=h;
+  const h=htmlFicha(M.capas.find(c=>c.clave===k),p);$("#info").innerHTML='<div id="puntoTarjeta"></div>'+h;$("#infoSec").innerHTML=h;
   if(ESC<0){document.body.classList.remove("sin-panel");$("#b-panel").setAttribute("aria-pressed",true);$("#secFicha").open=true;$("#secFicha").scrollIntoView({block:"nearest"})}if(CORTE&&$("#cOn").checked)pintarTapa();
   dibujarSeccion();
 }
@@ -1195,6 +1261,7 @@ function fallaEnCorte(t,z,tol){   // falla visible cuya traza pasa a menos de to
   return mejor}
 function unidadEnCorte(t,z,modo){
   const G=CORTE,it=Math.round(t/RES),kz=Math.round((z-ZMIN)/RES);if(it<0||kz<0||it>=G.nt||kz>=G.nz)return null;const i=kz*G.nt+it;
+  if(G.vis&&!G.raster.lit[i]&&G.vis.lit[i]){const V=G.vis;if(modo==="dom"&&V.dom[i])return codigoAClave("dom",V.dom[i]);if(modo==="zon"&&V.zon[i])return codigoAClave("zon",V.zon[i]);return codigoAClave("lit",V.lit[i])}
   if(modo==="dom"&&G.raster.dom[i])return codigoAClave("dom",G.raster.dom[i]);
   if(modo==="zon"&&G.raster.zon[i])return codigoAClave("zon",G.raster.zon[i]);
   if(modo==="cu"&&G.cu[i]>=0&&capas.leyes)return G.raster.lit[i]?codigoAClave("lit",G.raster.lit[i]):null;
@@ -1278,7 +1345,7 @@ function actualizarCorte(ligero){
   planoCorte.set(n3,-n3.dot(new THREE.Vector3(...toV(CORTE.p0[0],CORTE.p0[1],Z0))));
   $("#oOff").textContent=(off>0?"+":"")+off+" m";$("#oAz").textContent="N"+String(az).padStart(3,"0")+"°";
   $("#cInfo").textContent=`A (${cardinal(az+180)}) → A′ (${cardinal(az)}) · ${Math.round(CORTE.L)} m · + desplaza hacia el ${cardinal(az-90)}`;
-  calcularCorte(ligero);pintarTapa();if(flechasObj&&!ligero)flechas(true);if(!ligero){leyenda3D();redibujarTodo()}else{dibujarPlanta($("#cMini"),true);if(!$("#vpla").hidden)dibujarPlanta($("#cPla"),false)}
+  calcularCorte(ligero);pintarTapa();actualizarPunto();if(flechasObj&&!ligero)flechas(true);if(!ligero){leyenda3D();redibujarTodo()}else{dibujarPlanta($("#cMini"),true);if(!$("#vpla").hidden)dibujarPlanta($("#cPla"),false)}
 }
 function cardinal(az){const n=["N","NE","E","SE","S","SO","O","NO"];return n[Math.round((((az%360)+360)%360)/45)%8]}
 let pendLig=false;function pedirCorteLigero(){if(pendLig)return;pendLig=true;requestAnimationFrame(()=>{pendLig=false;actualizarCorte(true)})}
@@ -1418,7 +1485,7 @@ function dibujarPlanta(cv,mini){
   ctx.font=`700 ${mini?22:16}px IBM Plex Sans Condensed, sans-serif`;ctx.fillText("N",W-m-24,m+30);ctx.beginPath();ctx.moveTo(W-m-24,m+36);ctx.lineTo(W-m-24,m+70);ctx.moveTo(W-m-30,m+46);ctx.lineTo(W-m-24,m+36);ctx.lineTo(W-m-18,m+46);ctx.stroke();
   if(!mini){ctx.font="16px IBM Plex Sans, sans-serif";ctx.textAlign="left";ctx.fillText("x local (m, Este) · y local (m, Norte) · sistema local, dimensiones ilustrativas",m,m-16);
     const it=(modo==="lit"?L.lito:L.dominio).map(l=>`<span><i class="sw" style="background:${l[3]}"></i>${esc(l[2])}</span>`).join("");
-    $("#leyPla").innerHTML=it+`<span><i class="ln" style="border-color:#c2185b;border-top-style:dashed"></i>Intrusivo a 3900 m (800 × 750 m, LS2005 p. 197)</span>`+
+    $("#leyPla").innerHTML=`<span>Geología en superficie: campo implícito en rejilla de 20 m (no las mallas 3D)</span>`+it+`<span><i class="ln" style="border-color:#c2185b;border-top-style:dashed"></i>Intrusivo a 3900 m (800 × 750 m, LS2005 p. 197)</span>`+
       M.capas.filter(c=>c.grupo==="Fallas"&&capas[c.clave].visible).map(c=>c.ficha.estado==="h"?`<span><i class="ln" style="border-color:#6b6b6b;border-top-style:dashed;border-top-width:2px"></i>${esc(nombreFalla(c))} a 4300 m</span>`:`<span><i class="ln" style="border-color:${c.color};border-top-width:4px"></i>${esc(nombreFalla(c))} a 4300 m</span>`).join("")+
       `<span><i class="ln" style="border-color:#3b2f22;border-top-style:dashed"></i>Eje de la rampa (ilustrativo)</span><span>Sombreado y curvas cada 50 m de la superficie actual (rejilla de 4 m)</span>`+
       `<span><i class="ln" style="border-color:var(--cut)"></i>Traza A–A′ (la flecha señala el lado visible)</span>`+(capas.sondajes.visible?`<span><i class="sw" style="background:#111;border-radius:50%"></i>Collares sintéticos</span>`:"")}

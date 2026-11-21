@@ -250,51 +250,156 @@ body.presentacion #leyCont .it{font-size:15px}
 body.presentacion .marcaA{font-size:22px}
 body.presentacion #b-present{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
 @media (max-width:820px){aside#panel{width:auto} .mas{margin-left:0} .cabAcc{margin-left:0} #cab nav{margin-left:0}}
+
+/* ===================== v10: visor geológico grafito / pizarra / cobre (según la imagen de referencia) ===================== */
+:root,:root[data-theme="light"],:root[data-theme="dark"]{--bg:#15181b;--panel:#1b1f23;--ink:#e6e8ea;--muted:#98a2ab;--line:#2b3137;--canvas:#1d2630;
+  --acc:#b8744b;--acc-ink:#fff;--acc-bg:rgba(184,116,75,.16);--accent:#b8744b;--warn:#e9bf6a;--warn-bg:#2c2415;--ok:#86c08a;--ok-bg:#172419;--hip:#c3a6ec;--hip-bg:#2a2238;color-scheme:dark}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#15181b;--panel:#1b1f23;--ink:#e6e8ea;--muted:#98a2ab;--line:#2b3137;--canvas:#1d2630;--acc:#b8744b;--acc-ink:#fff}}
+body{background:var(--bg)}
+#cab{gap:0 18px;padding-block:0;min-height:54px;flex-wrap:nowrap}
+#cab .marca{flex-direction:row;align-items:center;gap:12px;padding-right:18px;border-right:1px solid var(--line);align-self:stretch}
+#cab .marca .logo{width:40px;height:24px;color:var(--acc);flex:none}
+#cab .marca h1{font:600 19px var(--f-body);letter-spacing:.005em;white-space:nowrap}
+#cab nav{margin-left:6px;gap:2px;align-self:stretch;flex-wrap:nowrap}
+#cab nav button{border-radius:0;padding:0 14px;height:100%;min-height:54px;font-size:14.5px!important;color:var(--muted);background:none!important;border-bottom:2px solid transparent}
+#cab nav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--acc)}
+#cab nav button:hover{color:var(--ink)}
+.cabAcc{margin-left:auto;align-items:center}
+.btn.sutil{border-color:transparent;color:var(--muted)}
+.btn.sutil:hover,.btn.sutil[aria-pressed="true"]{color:var(--ink);border-color:var(--line)}
+.btn.icono{padding:6px 8px;display:grid;place-items:center}
+.btn.icono svg{width:18px;height:18px}
+.btn[aria-pressed="true"]{background:var(--acc-bg);border-color:var(--acc);color:var(--ink)}
+.corto{display:none}
+#barraHerr{gap:8px 12px;padding:9px max(16px,env(safe-area-inset-left,0px))}
+.modos{border-radius:7px;border-color:var(--line);overflow:visible;gap:0}
+.modos button{background:transparent!important;color:var(--muted);padding:7px 16px;font-size:13.5px!important;border-right:1px solid var(--line);border-radius:0}
+.modos button:first-child{border-radius:6px 0 0 6px}.modos button:last-child{border-radius:0 6px 6px 0}
+.modos button[aria-pressed="true"]{background:var(--acc-bg)!important;color:var(--ink);box-shadow:inset 0 0 0 1px var(--acc);border-radius:6px}
+.sep{width:1px;height:26px;background:var(--line)}
+.corteBtn{border-color:var(--acc);color:#f0d9c9;font-weight:600!important}
+.corteBtn[aria-pressed="true"]{background:var(--acc)!important;color:#fff!important;border-color:var(--acc)}
+#barraHerr #barraCorte{display:flex;align-items:center;gap:6px 16px;padding:0;background:none;border:0;font-size:12.5px;flex-wrap:wrap}
+#barraCorte label{color:var(--muted)}
+#barraCorte input[type=range]{width:min(130px,26vw);accent-color:var(--acc)}
+#b-revelar{margin-left:auto}
+#b-revelar~.mas{margin-left:0}
+#barraCorte output{color:var(--ink)}
+#barraCorte #cInfo{color:var(--muted);font-size:12px}
+#barraHerr:not(:has(#cOn:checked)) #barraCorte{display:none}
+body[data-vista="vpla"] #barraHerr>*:not(#barraCorte),body[data-vista="vsec"] #barraHerr>*:not(#barraCorte){display:none!important}
+body[data-vista="vpla"] #barraHerr #barraCorte,body[data-vista="vsec"] #barraHerr #barraCorte{display:flex!important}
+body[data-vista="vpla"] #barraCorte label,body[data-vista="vsec"] #barraCorte label,body[data-vista="vpla"] #barraCorte #cInfo,body[data-vista="vsec"] #barraCorte #cInfo{display:flex!important}
+body[data-vista="vpla"] #barraCorte::before,body[data-vista="vsec"] #barraCorte::before{content:"Corte A–A′";font-weight:600;color:var(--ink)}
+@media (max-width:1750px){#barraHerr #barraCorte #cInfo{display:none!important}}
+.mas{margin-left:auto}
+#lienzo3d{background:radial-gradient(ellipse at 50% 40%,#25303c 0%,var(--canvas) 70%)}
+aside#panel{width:clamp(260px,21vw,330px);padding:6px 16px 10px;gap:0}
+aside#panel details.sec{border-top:0;border-bottom:1px solid var(--line);padding:10px 0}
+aside#panel details#leyPanel>summary{font:600 18px var(--f-body);padding:4px 0 10px;list-style:none}
+aside#panel details#leyPanel>summary::-webkit-details-marker{display:none}
+#leyCont h4{font:600 11.5px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:12px 0 2px}
+#leyCont h4:first-child{margin-top:0}
+.fila{display:grid;grid-template-columns:20px 18px minmax(0,1fr) auto;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px;cursor:pointer}
+.fila.sub{grid-template-columns:20px 14px minmax(0,1fr) auto;padding:4px 0;border-bottom:0;font-size:12.5px;color:var(--muted);cursor:default}
+.fila .sw{width:18px;height:18px;border-radius:3px;border:1px solid rgba(255,255,255,.12)}
+.fila.sub .sw{width:14px;height:14px}
+.fila .n{overflow:hidden;text-overflow:ellipsis}
+.fila input[type=checkbox],.cajita{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin:0;border:1.5px solid #6b737b;border-radius:3px;display:grid;place-items:center;cursor:pointer;background:transparent}
+.fila input[type=checkbox]:checked{background:var(--acc);border-color:var(--acc)}
+.fila input[type=checkbox]:checked::after{content:"";width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+.fila .etq{font-size:9.5px}
+.ctlPanel{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0 4px;font-size:13.5px}
+.ctlPanel input[type=range]{flex:1;accent-color:var(--acc)}
+.ctlPanel output{font:500 12px var(--f-mono);min-width:5ch;text-align:right}
+.interruptor{position:relative;width:38px;height:22px;flex:none}
+.interruptor input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.interruptor i{position:absolute;inset:0;border-radius:11px;background:#3a4148;transition:background .15s;pointer-events:none}
+.interruptor i::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#cfd4d8;transition:transform .15s}
+.interruptor input:checked+i{background:var(--acc)}
+.interruptor input:checked+i::after{transform:translateX(16px);background:#fff}
+.interruptor input:focus-visible+i{outline:2px solid var(--acc);outline-offset:2px}
+#secCapas>summary{font-size:13px!important;color:var(--muted)!important}
+.capa input.op{display:none}
+#secCapas.detalle .capa input.op{display:block}
+#secCapas .grupo{margin-bottom:8px}
+/* sobre el visor */
+.rosa{position:absolute;left:14px;top:12px;width:70px;height:70px;pointer-events:none;color:#e9edf0;z-index:2}
+.rosa svg{width:100%;height:100%;overflow:visible}
+#escala{left:auto!important;right:18px;bottom:14px;padding:0;background:none!important;color:#e3e7ea;font:500 11.5px var(--f-body);z-index:2}
+#escala .et{position:relative;height:16px;margin-bottom:3px}
+#escala .et span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+#escala .et span:last-child{transform:translateX(-30%)}
+#escala .barra{display:flex;height:6px;border:1px solid #e3e7ea}
+#escala .barra i{flex:1;width:auto!important;height:auto;border:0!important;margin:0;background:#e3e7ea}
+#escala .barra i:nth-child(even){background:transparent}
+#escala small{display:block;margin-top:3px;font-size:10px;color:#9aa5ae;text-align:right}
+.marcaA{background:none!important;color:#fff;font:600 20px var(--f-body)!important;text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 8px rgba(0,0,0,.6);padding:0 4px;display:flex;align-items:center;gap:3px}
+.marcaA::after{content:"";width:2px;height:18px;background:#fff;box-shadow:0 0 3px rgba(0,0,0,.8)}
+#mAp{flex-direction:row-reverse}
+.marcaA.fuera{opacity:.75;font-size:15px!important}
+.marcaA.fuera::after{display:none}
+#etqSint{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:3;font:600 12.5px var(--f-body);color:#ffe4a8;background:rgba(60,44,14,.88);border:1px solid #a7782a;padding:5px 12px;border-radius:5px;white-space:nowrap}
+#etqSint[hidden]{display:none}
+body.presentacion #etqSint{position:absolute;top:12px;left:50%}
+#pie{display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap;padding:7px max(16px,env(safe-area-inset-left,0px));border-top:1px solid var(--line);background:var(--panel);font-size:12.5px;color:var(--ink)}
+#pie .nota{font-size:11.5px}
+.ayuda{display:none}
+@media (max-width:820px){
+  #cab{flex-wrap:wrap;min-height:0}#cab .marca{border-right:0;padding:10px 0 4px}#cab nav{order:3;width:100%;margin-left:-8px;overflow-x:auto}#cab nav button{min-height:40px;padding:0 12px}
+  .cabAcc{gap:2px;margin-left:auto}#b-present{display:none}#cab .marca h1{font-size:17px}.largo{display:none}.corto{display:inline}
+  .modos button{padding:7px 11px}#barraHerr #barraCorte{width:100%}.sep{display:none}
+  #lienzo3d{min-height:58vh}.rosa{width:54px;height:54px}#escala small{display:none}
+  aside#panel{width:auto;padding:4px 16px 12px}
+}
 </style>
 
 <header id="cab">
-  <div class="marca"><h1>Antamina</h1><span>Modelo geológico conceptual · Áncash, Perú</span></div>
+  <div class="marca"><svg class="logo" viewBox="0 0 48 28" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.7"><ellipse cx="24" cy="13" rx="22.5" ry="11.5"/><ellipse cx="24" cy="14.5" rx="16.5" ry="8"/><ellipse cx="24" cy="16" rx="10.5" ry="4.8"/><ellipse cx="24" cy="17.2" rx="4.6" ry="2"/></g></svg><h1>Antamina 3D</h1></div>
   <nav role="tablist" aria-label="Vistas">
     <button role="tab" id="t-3d" aria-selected="true" data-v="v3d">3D</button>
     <button role="tab" id="t-pla" aria-selected="false" data-v="vpla">Planta</button>
     <button role="tab" id="t-sec" aria-selected="false" data-v="vsec">Sección</button>
-    <button role="tab" id="t-fic" aria-selected="false" data-v="vfic">Ficha y fuentes</button>
+    <button role="tab" id="t-fic" aria-selected="false" data-v="vfic">Fuentes</button>
   </nav>
-  <div class="cabAcc"><button class="btn" id="b-inicio" title="Cámara, corte y capas como al abrir">Vista inicial</button><button class="btn" id="b-present" aria-pressed="false">Presentación</button><button class="btn" id="b-panel" aria-pressed="true" title="Mostrar u ocultar el panel lateral">Panel</button></div>
+  <div class="cabAcc"><button class="btn sutil" id="b-tour" aria-pressed="false"><span class="largo">Recorrido guiado</span><span class="corto">Recorrido</span></button><button class="btn sutil" id="b-present" aria-pressed="false"><span class="largo">Presentación</span><span class="corto">Presentar</span></button><button class="btn icono" id="b-panel" aria-pressed="true" title="Mostrar u ocultar el panel de capas" aria-label="Panel de capas"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="3.5" width="15" height="13" rx="1.5"/><path d="M12.5 3.5v13"/></svg></button></div>
 </header>
 <div id="barraHerr">
-  <div class="modos" role="group" aria-label="Lectura del modelo"><button data-modo="lit" aria-pressed="true">Litologías</button><button data-modo="dom" aria-pressed="false">Dominios mineralizados</button><button data-modo="cu" aria-pressed="false">Ley de Cu sintética</button></div>
-  <button class="btn prim" id="b-revelar">Revelar subsuelo</button><button class="btn" id="b-pausa" hidden>Pausa</button>
-  <button class="btn" id="b-tour">Recorrido guiado</button>
-  <span class="etqSint" id="etqSint" hidden>Ley de Cu sintética · no es dato de Antamina</span>
-  <details class="mas" id="mas"><summary class="btn">Más opciones</summary>
+  <div class="modos" role="group" aria-label="Lectura del modelo"><button data-modo="lit" aria-pressed="true">Litologías</button><button data-modo="dom" aria-pressed="false"><span class="largo">Dominios mineralizados</span><span class="corto">Dominios</span></button><button data-modo="cu" aria-pressed="false"><span class="largo">Ley de Cu sintética</span><span class="corto">Cu sintético</span></button></div>
+  <span class="sep" aria-hidden="true"></span>
+  <button class="btn corteBtn" id="b-corte" aria-pressed="false" title="Recortar el bloque por el plano A–A′">Corte A–A′</button>
+  <div id="barraCorte">
+    <input type="checkbox" id="cOn" hidden>
+    <label>Orientación <input type="range" id="cAz" min="0" max="179" step="1" value="90"><output id="oAz">N090°</output></label>
+    <label>Desplazamiento <input type="range" id="cOff" min="-1400" max="1400" step="10" value="0"><output id="oOff">0 m</output></label>
+    <span class="nota" id="cInfo"></span>
+  </div>
+  <button class="btn" id="b-revelar">Revelar subsuelo</button><button class="btn" id="b-pausa" hidden>Pausa</button>
+  <details class="mas" id="mas"><summary class="btn"><span class="largo">Más opciones</span><span class="corto">Más</span></summary>
     <div class="menu">
       <h4>Cámara</h4>
-      <div class="encuadres"><button id="b-tajo" aria-pressed="true">Tajo completo</button><button id="b-geo" aria-pressed="false">Geología en corte</button></div>
-      <div class="botones"><button id="b-iso">Bloque completo</button><button id="b-frente">Frente al corte</button><button id="b-pla">Desde arriba</button><button id="b-lupa">Acercar al contacto</button><button id="b-volver" hidden>Volver al encuadre anterior</button></div>
+      <div class="encuadres"><button id="b-iso" aria-pressed="true">Bloque completo</button><button id="b-tajo" aria-pressed="false">Tajo completo</button><button id="b-geo" aria-pressed="false">Geología en corte</button><button id="b-inicio" aria-pressed="false" title="Cámara, corte y capas como al abrir">Vista inicial</button></div>
+      <div class="botones"><button id="b-frente">Frente al corte</button><button id="b-pla">Desde arriba</button><button id="b-lupa">Acercar al contacto</button><button id="b-volver" hidden>Volver al encuadre anterior</button></div>
       <h4>Herramientas</h4>
-      <div class="botones"><button id="b-rampa" aria-pressed="false">Resaltar rampa</button><button id="b-comp" aria-pressed="false">Comparar lecturas</button></div>
-      <div class="fila"><label><input type="checkbox" id="qFal"> Fallas</label><label><input type="checkbox" id="qSon"> Sondajes (sintéticos)</label></div>
+      <div class="botones"><button id="b-rampa" aria-pressed="false">Resaltar rampa</button><button id="b-comp" aria-pressed="false">Comparar lecturas</button><button id="b-detalle" aria-pressed="false">Opacidad por capa</button></div>
+      <div class="fila0"><label><input type="checkbox" id="qSon"> Sondajes (sintéticos)</label></div>
       <h4>Exportar</h4>
       <div class="botones"><button id="b-glb">Modelo 3D (GLB)</button></div>
     </div></details>
 </div>
-<div id="barraCorte">
-  <b>Corte A–A′</b>
-  <label><input type="checkbox" id="cOn" checked> Recortar el bloque</label>
-  <label>Desplazamiento <input type="range" id="cOff" min="-1400" max="1400" step="10" value="0"><output id="oOff">0 m</output></label>
-  <label>Orientación <input type="range" id="cAz" min="0" max="179" step="1" value="90"><output id="oAz">N090°</output></label>
-  <span class="nota" id="cInfo"></span>
-</div>
 <main>
   <section class="vista" id="v3d">
     <div id="lienzo3d"><div class="cargando" id="carga">Cargando modelo…</div>
-      <div class="brujula" title="Norte"><i id="flechaN"></i>N</div>
+      <div class="rosa" aria-hidden="true"><svg viewBox="-36 -36 72 72" id="flechaN" style="transform-origin:50% 50%"><g fill="currentColor" font-family="IBM Plex Sans,system-ui,sans-serif" font-size="11" font-weight="600" text-anchor="middle">
+        <text x="0" y="-25">N</text><text x="0" y="33">S</text><text x="28" y="4">E</text><text x="-28" y="4">O</text></g>
+        <path d="M0 -19 L4 0 L0 0 Z" fill="#fff"/><path d="M0 -19 L-4 0 L0 0 Z" fill="#9aa4ad"/><path d="M0 19 L4 0 L0 0 Z" fill="#9aa4ad"/><path d="M0 19 L-4 0 L0 0 Z" fill="#fff"/>
+        <path d="M-17 0 L0 3 L0 -3 Z M17 0 L0 3 L0 -3 Z" fill="#c4cbd1"/></svg></div>
+      <span class="etqSint" id="etqSint" hidden>Ley de Cu sintética · no es dato de Antamina</span>
       <div class="marcaA" id="mA">A</div><div class="marcaA" id="mAp">A′</div>
       <div id="divisor" role="slider" aria-label="Divisor de la comparación" tabindex="0"></div>
       <div class="sobre etqComp" id="compIzq"><select id="selIzq" aria-label="Vista izquierda"><option value="lit">Litologías</option><option value="dom">Dominios</option><option value="cu">Ley de Cu sintética</option></select></div>
       <div class="sobre etqComp" id="compDer"><select id="selDer" aria-label="Vista derecha"><option value="lit">Litologías</option><option value="dom" selected>Dominios</option><option value="cu">Ley de Cu sintética</option></select></div>
-      <div class="sobre" id="escala" title="Escala aproximada en el centro de la vista"><i></i><span></span></div>
+      <div class="sobre" id="escala" title="Escala aproximada en el centro de la vista"></div>
       <div class="sobre" id="tour" hidden><h4 id="tourT"></h4><p id="tourX"></p><div class="pie"><span id="tourN"></span><div class="der"><button id="tourAnt">Anterior</button><button id="tourSig">Siguiente</button><button id="tourSal">Explorar libremente</button></div></div></div>
       <div class="marcaP" id="mPunto" aria-hidden="true"></div><div class="marcaR" id="mFluidos">Flechas esquemáticas: fluidos (ilustrativo)</div><div class="marcaR" id="mAcceso">Acceso a la rampa</div><div class="marcaR" id="mFondo">Fondo del tajo</div>
     </div>
@@ -309,13 +414,15 @@ body.presentacion #b-present{background:var(--acc);border-color:var(--acc);color
         <p class="nota" id="expoF"></p>
         <div class="expoNav"><button class="btn" id="expoAnt">Anterior</button><button class="btn prim" id="expoSig">Siguiente</button><button class="btn" id="expoLibre">Explorar libremente</button></div>
       </details>
-      <details class="sec" id="leyPanel" open><summary>Leyenda</summary><div id="leyCont"></div>
+      <details class="sec" id="leyPanel" open><summary>Capas</summary><div id="leyCont"></div>
         <div id="panelCu" hidden><div class="escCu" id="escCu"></div><div class="tics"><span>0,2</span><span>0,3</span><span>0,5</span><span>0,7</span><span>1,0</span><span>% Cu</span></div>
           <label class="nota" style="display:block;margin-top:8px">Filtro de visualización: <output id="oCu">0,20–3,00 % Cu</output></label>
           <input type="range" id="cuMin" min="0.2" max="3" step="0.05" value="0.2" aria-label="Ley mínima mostrada"><input type="range" id="cuMax" min="0.2" max="3" step="0.05" value="3" aria-label="Ley máxima mostrada"></div>
+        <div class="ctlPanel"><span>Fallas</span><label class="interruptor" title="Cabalgamiento y Falla del Valle (interpretadas)"><input type="checkbox" id="qFal" aria-label="Mostrar fallas"><i></i></label></div>
+        <div class="ctlPanel"><span>Opacidad</span><input type="range" id="opTer" class="op" data-k="superficie" min="0.1" max="1" step="0.05" value="1" aria-label="Opacidad del terreno"><output id="oTer">100 %</output></div>
       </details>
       <details class="sec" id="secFicha" open><summary>Unidad seleccionada</summary><div class="info" id="info"><p class="nota">Haz clic sobre una unidad, una falla o la cara del corte.</p></div></details>
-      <details class="sec" id="secCapas"><summary>Capas y opacidad</summary><div id="capas"></div></details>
+      <details class="sec" id="secCapas"><summary>Todas las capas</summary><div id="capas"></div></details>
       <p class="nota ayuda">Arrastra para girar · rueda para acercar · clic derecho para desplazar</p>
     </aside>
   </section>
@@ -364,6 +471,7 @@ body.presentacion #b-present{background:var(--acc);border-color:var(--acc);color
     <div class="hoja"><div class="ficha" id="ficha"></div></div>
   </section>
 </main>
+<footer id="pie"><span>Modelo geológico conceptual</span><span class="nota">Áncash, Perú · coordenadas locales · relieve, tajo y texturas ilustrativos · dominios interpretativos · Cu sintético</span></footer>
 <div id="aviso" role="status"></div>
 
 <script src="vendor/three.min.js"></script>
@@ -378,7 +486,7 @@ body.presentacion #b-present{background:var(--acc);border-color:var(--acc);color
    Abreviaturas: LS2005 = Lipten y Smith (2005); R1999 = Redwood (1999); PG = PorterGeo;
    M2018 = Mrozek (2018, solo resumen).
    ===================================================================================== */
-const INICIO={modo:"tajo",corte:{on:false,az:90,off:0},
+const INICIO={modo:"bloque",corte:{on:false,az:90,off:0},
   ocultas:["falla_hipotetica_H1","sondajes","leyes","excavado"],     // disponibles para demostración, apagadas al abrir
   opacidad:{superficie:1,excavado:0.25,falla_cabalgamiento:0.55,falla_valle:0.55,falla_hipotetica_H1:0.45}};
 /* Cada ficha separa: mineral = fuente de la asociación mineral; dimensiones = fuente de la orientación o las dimensiones;
@@ -475,7 +583,7 @@ function aviso(t){const a=$("#aviso");a.textContent=t;a.classList.add("on");clea
 document.querySelectorAll("nav button[role=tab]").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll("nav button[role=tab]").forEach(x=>x.setAttribute("aria-selected",x===b));
   document.querySelectorAll(".vista").forEach(v=>v.hidden=v.id!==b.dataset.v);
-  $("#barraCorte").hidden=b.dataset.v==="vfic";$("#barraHerr").hidden=b.dataset.v!=="v3d";
+  $("#barraHerr").hidden=b.dataset.v==="vfic";document.body.dataset.vista=b.dataset.v;
   if(b.dataset.v==="v3d")redimensionar();
   try{localStorage.setItem("ant3d.tab",b.id)}catch(e){}
 }));
@@ -504,6 +612,9 @@ function cargarModelo(){
 cargarModelo();
 
 function prepararDatos(){
+  // paleta de las unidades (v10): pizarra para la roca hospedante, terracota, naranja y oliva para intrusivo y skarn
+  const PAL={intrusivo:"#b5674f",endoskarn:"#df8a3d",exoskarn:"#8f8d4a",jumasha_techo:"#6f849a",celendin:"#a1a8ad",jumasha_piso:"#52657a"};
+  for(const l of M.leyenda.lito)if(PAL[l[1]])l[3]=PAL[l[1]];for(const c of M.capas)if(PAL[c.clave])c.color=PAL[c.clave];
   for(const k in M.compartidas){const c=M.compartidas[k],pi=i16(...c.pos_i16),P=new Float32Array(pi.length);
     for(let i=0;i<pi.length;i+=3){P[i]=pi[i]*c.escala;P[i+1]=pi[i+1]*c.escala;P[i+2]=pi[i+2]*c.escala+c.z0}
     const T=new Float32Array(P.length);for(let i=0;i<P.length;i+=3){T[i]=P[i];T[i+1]=P[i+2]-Z0;T[i+2]=-P[i+1]}
@@ -568,8 +679,8 @@ function pasoVuelo(){
 }
 function luces(modo){
   if(modo==="tajo"){   // luz lateral suave desde el ONO, baja, para que se lean caras, bermas y rampa
-    LUZ.hemi.color.set(0xdfe3e6);LUZ.hemi.groundColor.set(0x8f8676);LUZ.hemi.intensity=0.8;
-    LUZ.sol.intensity=0.78;LUZ.sol.position.set(...toV(-2700,1300,4200+2100));LUZ.sol2.intensity=0.32;LUZ.sol2.position.set(...toV(300,-400,4200+4000));   // luz cenital suave: el fondo del tajo no queda en sombra
+    LUZ.hemi.color.set(0xdfe3e6);LUZ.hemi.groundColor.set(0x6f685e);LUZ.hemi.intensity=0.5;
+    LUZ.sol.intensity=0.9;LUZ.sol.position.set(...toV(-2700,1300,4200+2100));LUZ.sol2.intensity=0.2;LUZ.sol2.position.set(...toV(300,-400,4200+4000));   // luz cenital suave: el fondo del tajo no queda en sombra
   }else{
     LUZ.hemi.color.set(0xf4f1ea);LUZ.hemi.groundColor.set(0x404850);LUZ.hemi.intensity=0.82;
     LUZ.sol.intensity=0.78;LUZ.sol.position.set(-2500,4000,3000);LUZ.sol2.intensity=0.25;LUZ.sol2.position.set(2500,1500,-3000);
@@ -588,6 +699,29 @@ function ruido2(x,y){   // ruido de valor suave (0..1), sin patrón repetido vis
   const h=(i,j)=>{let n=(i*374761393+j*668265263)|0;n=(n^(n>>>13))*1274126177|0;return((n^(n>>>16))>>>0)/4294967295};
   const i=Math.floor(x),j=Math.floor(y),u=x-i,v=y-j,su=u*u*(3-2*u),sv=v*v*(3-2*v);
   return(h(i,j)*(1-su)+h(i+1,j)*su)*(1-sv)+(h(i,j+1)*(1-su)+h(i+1,j+1)*su)*sv}
+
+const GLSL_GRANO=`varying vec4 vPw;
+float h3(vec3 p){p=fract(p*0.3183099+0.1);p*=17.0;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float vn3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.0-2.0*f);
+  return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z);}
+float grano(vec4 p){float fino=1.0-smoothstep(1400.0,3600.0,p.w);float g=0.5+0.45*(vn3(p.xyz/38.0)-0.5);if(fino>0.01)g+=fino*0.4*(vn3(p.xyz/8.0)-0.5);return g;}`;
+let ALT_TEX=null;
+function texturaAltura(){   // superficie actual (rejilla de 4 m) como textura de alturas: la roca no se dibuja por encima del terreno
+  if(ALT_TEX)return ALT_TEX;const R=SUP,sc=M.capas.find(c=>c.clave==="superficie"),d=new Float32Array(R.nx*R.ny);
+  for(let k=0;k<d.length;k++)d[k]=sc.P[3*k+2]-Z0;
+  const hf=new Uint16Array(d.length);for(let k=0;k<d.length;k++)hf[k]=THREE.DataUtils.toHalfFloat(d[k]);   // media precisión: filtrado lineal por hardware (1 lectura por píxel)
+  ALT_TEX=new THREE.DataTexture(hf,R.nx,R.ny,THREE.RedFormat,THREE.HalfFloatType);ALT_TEX.magFilter=ALT_TEX.minFilter=THREE.LinearFilter;ALT_TEX.needsUpdate=true;return ALT_TEX;
+}
+const GLSL_ALT=`uniform sampler2D uAlt;uniform vec4 uAltI;
+float alturaSup(vec2 p){vec2 g=clamp((p-uAltI.xy)/uAltI.z,vec2(0.0),vec2(uAltI.w-1.0));return texture2D(uAlt,(g+0.5)/uAltI.w).r;}`;
+function granoRoca(m,amp,recortar=true){   // textura mate de roca: el grano fino se apaga con la distancia para que no centellee
+  m.onBeforeCompile=sh=>{
+    if(recortar){sh.uniforms.uAlt={value:texturaAltura()};sh.uniforms.uAltI={value:new THREE.Vector4(SUP.x0,SUP.y0,SUP.paso,SUP.nx)};
+      sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\n"+GLSL_ALT).replace("#include <clipping_planes_fragment>","#include <clipping_planes_fragment>\nif(vPw.y>alturaSup(vec2(vPw.x,-vPw.z))-1.0)discard;")}
+    sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying vec4 vPw;").replace("#include <fog_vertex>","#include <fog_vertex>\nvPw=vec4((modelMatrix*vec4(transformed,1.0)).xyz,-mvPosition.z);");
+    sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\n"+GLSL_GRANO).replace("#include <color_fragment>","#include <color_fragment>\ndiffuseColor.rgb*=1.0+"+amp.toFixed(3)+"*(grano(vPw)-0.5)*2.0;")};
+  m.customProgramCacheKey=()=>"grano"+amp+(recortar?"r":"");return m;
+}
 function materialTerreno(op){   // el detalle de banco (color y normal finos) se funde con su versión suave a partir de ~1,3 km de la cámara
   const m=new THREE.MeshStandardMaterial(op);
   m.onBeforeCompile=sh=>{sh.uniforms.uFade={value:new THREE.Vector2(1300,3300)};
@@ -596,54 +730,86 @@ function materialTerreno(op){   // el detalle de banco (color y normal finos) se
       .replace("#include <beginnormal_vertex>","vec3 objectNormal=normalize(mix(vec3(normal),norSuave,fdT));\n#ifdef USE_TANGENT\nvec3 objectTangent=vec3(tangent.xyz);\n#endif")};
   m.customProgramCacheKey=()=>"terreno-fade";return m;
 }
+function materialSuperficie(tex){
+  // v10: la textura se lee con un nivel de detalle mínimo que crece con la distancia (~1 nivel por cada duplicación desde 190 m):
+  // a 3 km berma y cara toman el mismo color promedio y desaparece el rayado; de cerca se conserva todo el detalle de banco.
+  const m=new THREE.MeshLambertMaterial({map:tex,side:THREE.FrontSide,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-6});
+  m.extensions={derivatives:true};
+  m.onBeforeCompile=sh=>{
+    sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying float vDistT;").replace("#include <fog_vertex>","#include <fog_vertex>\nvDistT=-mvPosition.z;");
+    sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nvarying float vDistT;").replace("#include <map_fragment>",
+      "#ifdef USE_MAP\nvec2 dU=dFdx(vUv*2048.0),dV=dFdy(vUv*2048.0);float lodG=0.5*log2(max(max(dot(dU,dU),dot(dV,dV)),1e-6));\nfloat lodD=clamp(log2(vDistT/190.0),0.0,7.0);\nvec4 sampledDiffuseColor=texture2D(map,vUv,max(0.0,lodD-lodG));\ndiffuseColor*=sampledDiffuseColor;\n#endif")};
+  m.customProgramCacheKey=()=>"superficie-lod";return m;
+}
 function geomSuperficie(c){
-  const R=c.rejilla,P=c.P,n=P.length/3,pos=new Float32Array(P.length),uv=new Float32Array(n*2),col=new Float32Array(P.length),cl=u8(...R.clase);
+  // v10: el detalle de banco (color + sombreado fino de caras y bermas con una luz lateral del ONO) se hornea en una textura de 2048 px
+  // con mipmaps y filtro anisótropo; la luz dinámica usa normales suaves (±16 m). De lejos la textura se promedia sola: no hay rayado.
+  const R=c.rejilla,P=c.P,nx=R.nx,ny=R.ny,n=nx*ny,cl=u8(...R.clase),Z=k=>P[3*k+2],T=2048;
   const C=k=>new THREE.Color(k);
-  const nat=[C("#8c8a68"),C("#7b7a5e"),C("#857c6c"),C("#6f6c5a")],   // puna, puna húmeda, roca expuesta, quebrada
-        tajo={1:C("#756d61"),2:C("#958b7c"),3:C("#7b7366"),4:C("#ab936a"),5:C("#6b6152"),6:C("#857c6f")};   // berma, cara, borde, rampa, borde de rampa, fondo
-  const t=new THREE.Color(),Z=k=>P[3*k+2];
-  // tinte de la roca expuesta según la unidad en superficie (planta de 20 m): «estratificación» sugerida, ilustrativa
-  const PL=M.planta,litP=u8(...PL.lit),TINTE={1:C("#b3a29f"),2:C("#9d7563"),3:C("#8f9069"),4:C("#9aa0a3"),5:C("#a29b8c"),6:C("#949ba0")};
-  const tin=new THREE.Color(),tq=new THREE.Color();
-  const tinte=(x,y)=>{   // mezcla bilineal de los colores de las cuatro celdas vecinas (sin bloques de 20 m)
-    const fx=Math.max(0,Math.min(PL.nx-1.001,(x-PL.x0)/PL.paso)),fy=Math.max(0,Math.min(PL.ny-1.001,(y-PL.y0)/PL.paso)),i=Math.floor(fx),j=Math.floor(fy),u=fx-i,w=fy-j;
+  const nat=[C("#8a8372"),C("#7b7966"),C("#8f8a83"),C("#625e55")],   // puna seca, puna húmeda, roca expuesta, quebrada
+        tajo={1:C("#867f76"),2:C("#7f7970"),3:C("#8a847c"),4:C("#c2b8a2"),5:C("#4c473f"),6:C("#605a53")},   // berma, cara, borde, rampa (afirmado), borde de rampa, fondo
+        oxido=C("#9b6a42");
+  const PL=M.planta,litP=u8(...PL.lit),TINTE={1:C("#a68f87"),2:C("#a4714d"),3:C("#8e8558"),4:C("#9b9c9b"),5:C("#a59f93"),6:C("#93989c")};
+  const tin=new THREE.Color(),tq=new THREE.Color(),t=new THREE.Color();
+  const tinte=(x,y)=>{const fx=Math.max(0,Math.min(PL.nx-1.001,(x-PL.x0)/PL.paso)),fy=Math.max(0,Math.min(PL.ny-1.001,(y-PL.y0)/PL.paso)),i=Math.floor(fx),j=Math.floor(fy),u=fx-i,w=fy-j;
     tin.setRGB(0,0,0);let s=0;for(const[di,dj,pe]of[[0,0,(1-u)*(1-w)],[1,0,u*(1-w)],[0,1,(1-u)*w],[1,1,u*w]]){const c=litP[(j+dj)*PL.nx+i+di];if(!c)continue;tq.copy(TINTE[c]).multiplyScalar(pe);tin.add(tq);s+=pe}
     return s>0.2?tin.multiplyScalar(1/s):null};
-  for(let j=0;j<R.ny;j++)for(let i=0;i<R.nx;i++){const k=j*R.nx+i,x=P[3*k],y=P[3*k+1],z=P[3*k+2];
-    pos[3*k]=x;pos[3*k+1]=z-Z0;pos[3*k+2]=-y;uv[2*k]=x/18;uv[2*k+1]=(y+z)/18;
-    const c0=cl[k];
-    if(c0===0){   // terreno natural: laderas, roca expuesta en lo empinado, quebradas más oscuras y variación a gran escala
-      const i1=Math.min(i+3,R.nx-1),i0=Math.max(i-3,0),j1=Math.min(j+3,R.ny-1),j0=Math.max(j-3,0);
-      const zx=(Z(j*R.nx+i1)-Z(j*R.nx+i0))/((i1-i0)*R.paso),zy=(Z(j1*R.nx+i)-Z(j0*R.nx+i))/((j1-j0)*R.paso),pend=Math.hypot(zx,zy);
-      const lap=(Z(j*R.nx+i1)+Z(j*R.nx+i0)+Z(j1*R.nx+i)+Z(j0*R.nx+i)-4*z)/(9*R.paso*R.paso);
+  const gr=(i,j,r)=>{const i1=Math.min(i+r,nx-1),i0=Math.max(i-r,0),j1=Math.min(j+r,ny-1),j0=Math.max(j-r,0);
+    return[(Z(j*nx+i1)-Z(j*nx+i0))/((i1-i0)*R.paso),(Z(j1*nx+i)-Z(j0*nx+i))/((j1-j0)*R.paso)]};
+  const sol=new THREE.Vector3(-2700,1300,2100).normalize();   // misma dirección que la luz «tajo»
+  const luz=(zx,zy)=>0.28+0.72*Math.max(0,(-zx*sol.x-zy*sol.y+sol.z)/Math.hypot(zx,zy,1));
+  const pos=new Float32Array(n*3),uv=new Float32Array(n*2),nor=new Float32Array(n*3),V=new Float32Array(n*3),ZV=new Float32Array(n),GX=new Float32Array(n),GY=new Float32Array(n),WB=new Float32Array(n);
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const k=j*nx+i,x=P[3*k],y=P[3*k+1],z=P[3*k+2],c0=cl[k];
+    pos[3*k]=x;pos[3*k+1]=z-Z0;pos[3*k+2]=-y;uv[2*k]=(i/(nx-1)*(T-1)+0.5)/T;uv[2*k+1]=(j/(ny-1)*(T-1)+0.5)/T;
+    const[sx,sy]=gr(i,j,4),Ls=Math.hypot(sx,sy,1);nor[3*k]=-sx/Ls;nor[3*k+1]=1/Ls;nor[3*k+2]=sy/Ls;ZV[k]=z;GX[k]=sx;GY[k]=sy;WB[k]=(c0>=1&&c0<=3)?1:0;
+    const[fx,fy]=gr(i,j,1);let F=luz(fx,fy)/luz(sx,sy);
+    if(c0===0){
+      const pend=Math.hypot(sx,sy),i1=Math.min(i+3,nx-1),i0=Math.max(i-3,0),j1=Math.min(j+3,ny-1),j0=Math.max(j-3,0);
+      const lap=(Z(j*nx+i1)+Z(j*nx+i0)+Z(j1*nx+i)+Z(j0*nx+i)-4*z)/(9*R.paso*R.paso);
       const g=ruido2(x/650,y/650)*0.6+ruido2(x/170+11,y/170+7)*0.4;
-      t.copy(nat[0]).lerp(nat[1],g);t.lerp(nat[2],Math.min(1,Math.max(0,(pend-0.35)/0.5)+Math.max(0,(z-4550)/350)));
-      t.lerp(nat[3],Math.min(0.7,Math.max(0,lap*90)));
-      t.multiplyScalar(0.92+0.14*ruido2(x/90,y/90));
+      t.copy(nat[0]).lerp(nat[1],g*0.8);t.lerp(nat[2],Math.min(1,Math.max(0,(pend-0.3)/0.45)+Math.max(0,(z-4500)/350)));
+      t.lerp(nat[3],Math.min(0.7,Math.max(0,lap*90)));t.multiplyScalar(0.9+0.16*ruido2(x/90,y/90));
     }else{t.copy(tajo[c0]);
-      if(c0===1||c0===2||c0===3||c0===6){const q=tinte(x,y);if(q)t.lerp(q,c0===2?0.4:0.22)}
-      // sombra suave en los cambios de pendiente: pie de banco (cóncavo) más oscuro, borde (convexo) apenas más claro
-      const i1=Math.min(i+1,R.nx-1),i0=Math.max(i-1,0),j1=Math.min(j+1,R.ny-1),j0=Math.max(j-1,0);
-      const lap=(Z(j*R.nx+i1)+Z(j*R.nx+i0)+Z(j1*R.nx+i)+Z(j0*R.nx+i)-4*z)/4;
-      t.multiplyScalar(Math.min(1.03,Math.max(0.8,1-0.035*lap)));
-      t.multiplyScalar(0.94+0.1*ruido2(x/45+3,y/45+5))}
-    col[3*k]=t.r;col[3*k+1]=t.g;col[3*k+2]=t.b}
-  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pos,3));g.setAttribute("uv",new THREE.BufferAttribute(uv,2));
-  g.setAttribute("color",new THREE.BufferAttribute(col,3));g.setIndex(new THREE.BufferAttribute(c.I,1));
-  // normales: finas (±1 celda) en el tajo para que caras y bermas se lean por la luz de cerca; suaves (±3) para la distancia
-  const nor=new Float32Array(P.length),norS=new Float32Array(P.length);
-  const normal=(i,j,r,out,k)=>{const i1=Math.min(i+r,R.nx-1),i0=Math.max(i-r,0),j1=Math.min(j+r,R.ny-1),j0=Math.max(j-r,0);
-    const zx=(Z(j*R.nx+i1)-Z(j*R.nx+i0))/((i1-i0)*R.paso),zy=(Z(j1*R.nx+i)-Z(j0*R.nx+i))/((j1-j0)*R.paso),L=Math.hypot(zx,zy,1);out[3*k]=-zx/L;out[3*k+1]=1/L;out[3*k+2]=zy/L};
-  for(let j=0;j<R.ny;j++)for(let i=0;i<R.nx;i++){const k=j*R.nx+i;normal(i,j,cl[k]?1:3,nor,k);normal(i,j,3,norS,k)}
-  // color suavizado (±2 celdas, dos pasadas) para la distancia
-  const tmp=new Float32Array(P.length),colS=new Float32Array(P.length),rad=2;
-  for(let j=0;j<R.ny;j++)for(let i=0;i<R.nx;i++){let a=0,b=0,c=0,n=0;for(let d=-rad;d<=rad;d++){const ii=Math.min(R.nx-1,Math.max(0,i+d)),q=3*(j*R.nx+ii);a+=col[q];b+=col[q+1];c+=col[q+2];n++}const q=3*(j*R.nx+i);tmp[q]=a/n;tmp[q+1]=b/n;tmp[q+2]=c/n}
-  for(let j=0;j<R.ny;j++)for(let i=0;i<R.nx;i++){let a=0,b=0,c=0,n=0;for(let d=-rad;d<=rad;d++){const jj=Math.min(R.ny-1,Math.max(0,j+d)),q=3*(jj*R.nx+i);a+=tmp[q];b+=tmp[q+1];c+=tmp[q+2];n++}const q=3*(j*R.nx+i);colS[q]=a/n;colS[q+1]=b/n;colS[q+2]=c/n}
-  g.setAttribute("normal",new THREE.BufferAttribute(nor,3));g.setAttribute("norSuave",new THREE.BufferAttribute(norS,3));g.setAttribute("colSuave",new THREE.BufferAttribute(colS,3));return g;
+      if(c0!==4&&c0!==5){const q=tinte(x,y);if(q)t.lerp(q,c0===2?0.35:0.2);
+        const ox=ruido2(x/230+5,y/230+9);t.lerp(oxido,0.3*Math.min(1,Math.max(0,(ox-0.56)/0.22)))}   // manchas de óxido: ilustrativas
+      const i1=Math.min(i+1,nx-1),i0=Math.max(i-1,0),j1=Math.min(j+1,ny-1),j0=Math.max(j-1,0);
+      F=1;   // en el tajo el relieve de banco se dibuja en la textura (abajo), sin el escalonado de la rejilla
+      t.multiplyScalar(0.95+0.1*ruido2(x/45+3,y/45+5))}
+    F=Math.min(1.45,Math.max(0.4,F))*0.74;V[3*k]=t.r*F;V[3*k+1]=t.g*F;V[3*k+2]=t.b*F}
+  // textura: interpolación bilineal de la rejilla + grano de roca (tesela de ruido de 256 px)
+  const cv=document.createElement("canvas");cv.width=cv.height=T;const ctx=cv.getContext("2d"),im=ctx.createImageData(T,T),d=im.data;
+  let sem=99;const rnd=()=>(sem=(sem*1103515245+12345)&0x7fffffff)/0x7fffffff;
+  const c64=new Float32Array(64*64).map(()=>rnd()),ru=new Float32Array(256*256);
+  for(let y=0;y<256;y++)for(let x=0;x<256;x++){const gx=x/4,gy=y/4,a0=Math.floor(gx),b0=Math.floor(gy),u=gx-a0,v=gy-b0,A=(p,q)=>c64[(q&63)*64+(p&63)];
+    ru[y*256+x]=0.62*((A(a0,b0)*(1-u)+A(a0+1,b0)*u)*(1-v)+(A(a0,b0+1)*(1-u)+A(a0+1,b0+1)*u)*v)+0.38*rnd()}
+  // cota de referencia de las bermas: moda de (z mod 15) en las celdas de berma
+  const hist=new Float32Array(30);for(let k=0;k<n;k++)if(cl[k]===1)hist[Math.floor((((ZV[k]%15)+15)%15)*2)]++;
+  let mo=0;for(let b=1;b<30;b++)if(hist[b]>hist[mo])mo=b;const ref=mo/2+0.25,BH=15;
+  const cara=new THREE.Vector3(),plano=luz(0,0),sen=Math.sin(70*Math.PI/180),cosA=Math.cos(70*Math.PI/180);
+  const esc=(nx-1)/(T-1),sst=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t)};
+  for(let py=0;py<T;py++){const gy=py*esc,j=Math.min(ny-2,Math.floor(gy)),v=gy-j,fila=(py&255)*256;
+    for(let px=0;px<T;px++){const gx=px*esc,i=Math.min(nx-2,Math.floor(gx)),u=gx-i,a=j*nx+i,b=a+nx,k=3*a,k2=3*b,w00=(1-u)*(1-v),w10=u*(1-v),w01=(1-u)*v,w11=u*v,q=4*(py*T+px);
+      let g=0.89+0.22*ru[fila+(px&255)];
+      const wb=WB[a]*w00+WB[a+1]*w10+WB[b]*w01+WB[b+1]*w11;
+      if(wb>0.02){
+        const z=ZV[a]*w00+ZV[a+1]*w10+ZV[b]*w01+ZV[b+1]*w11,ph=((((z-ref)/BH)%1)+1)%1;
+        const ex=GX[a]*w00+GX[a+1]*w10+GX[b]*w01+GX[b+1]*w11,ey=GY[a]*w00+GY[a+1]*w10+GY[b]*w01+GY[b+1]*w11,eL=Math.hypot(ex,ey)||1;
+        // cara de 70° mirando pendiente abajo (hacia el centro del tajo)
+        const nfx=-ex/eL*sen,nfy=-ey/eL*sen,lc=0.28+0.72*Math.max(0,nfx*sol.x+nfy*sol.y+cosA*sol.z);
+        const enCara=sst(0.05,0.15,ph)*(1-sst(0.86,0.95,ph)),cresta=sst(0.85,0.93,ph)*(1-sst(0.96,1,ph)),pie=sst(0.02,0.07,ph)*(1-sst(0.12,0.22,ph));
+        let f=(1-enCara)+enCara*Math.min(1.35,Math.max(0.42,lc/plano));f*=1+0.16*cresta;f*=1-0.2*pie;
+        g*=1+wb*(f-1);
+      }
+      g*=255;
+      d[q]=g*(V[k]*w00+V[k+3]*w10+V[k2]*w01+V[k2+3]*w11);d[q+1]=g*(V[k+1]*w00+V[k+4]*w10+V[k2+1]*w01+V[k2+4]*w11);d[q+2]=g*(V[k+2]*w00+V[k+5]*w10+V[k2+2]*w01+V[k2+5]*w11);d[q+3]=255}}
+  ctx.putImageData(im,0,0);
+  const tex=new THREE.CanvasTexture(cv);tex.flipY=false;tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;tex.generateMipmaps=true;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.anisotropy=rend.capabilities.getMaxAnisotropy();
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pos,3));g.setAttribute("uv",new THREE.BufferAttribute(uv,2));g.setAttribute("normal",new THREE.BufferAttribute(nor,3));
+  g.setIndex(new THREE.BufferAttribute(c.I,1));g.userData.tex=tex;return g;
 }
 function redimensionar(){if(!rend)return;const c=$("#lienzo3d"),w=c.clientWidth,h=c.clientHeight;if(!w||!h)return;
   TAM=[w,h];rend.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();
-  if(ENCUADRE_PENDIENTE&&ARRANCADO){ENCUADRE_PENDIENTE=false;if(ESC<0)encuadreTajo()}}   // el primer encuadre se calculó sin tamaño real
+  if(ENCUADRE_PENDIENTE&&ARRANCADO){ENCUADRE_PENDIENTE=false;if(ESC<0)encuadreInicio()}}   // el primer encuadre se calculó sin tamaño real
 function tamanoValido(){const c=$("#lienzo3d");return c.clientWidth>0&&c.clientHeight>0}
 function geomCompartida(c){
   const S=SETS[c.conjunto],Q=S.Q,BL=S.BL,cod=c.codigo,nq=Q.length/4;let n=0;
@@ -663,11 +829,10 @@ function geomMalla(c){
 function crearCapa(c){
   let obj;
   if(c.tipo==="compartida"){
-    const mat=new THREE.MeshLambertMaterial({color:c.color,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:c.grupo==="Litologias"?1:-1,polygonOffsetUnits:c.grupo==="Litologias"?1:-1});
+    const mat=granoRoca(new THREE.MeshLambertMaterial({color:c.color,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:c.grupo==="Litologias"?1:-1,polygonOffsetUnits:c.grupo==="Litologias"?1:-1}),c.grupo==="Litologias"?0.16:0.08);
     obj=new THREE.Mesh(geomCompartida(c),mat);
   }else if(c.tipo==="rejilla"){
-    obj=new THREE.Mesh(geomSuperficie(c),materialTerreno({vertexColors:true,map:texturaRoca(),roughness:1,metalness:0,flatShading:false,
-      side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-6}));
+    const gS=geomSuperficie(c);obj=new THREE.Mesh(gS,materialSuperficie(gS.userData.tex));obj.renderOrder=-1;   // el terreno se dibuja primero: la GPU descarta antes la roca que queda debajo
   }else if(c.tipo==="malla"){
     const g=geomMalla(c);let mat;
     if(c.clave==="superficie"){
@@ -720,11 +885,31 @@ function vistaFrente(){   // encuadra solo la mitad que queda tras el corte, vis
   for(const P of[G.A,G.Ap])for(const z of[3500,4650])esq.push([P[0],P[1],z]);
   const cx=esq.reduce((s,q)=>s+q[0],0)/esq.length,cy=esq.reduce((s,q)=>s+q[1],0)/esq.length;
   encuadrar([cx,cy,4120],[-G.n[0]*0.9-G.d[0]*0.25,-G.n[1]*0.9-G.d[1]*0.25,0.62],esq)}
-function marcarEncuadre(m){$("#b-tajo").setAttribute("aria-pressed",m==="tajo");$("#b-geo").setAttribute("aria-pressed",m==="geo")}
+function marcarEncuadre(m){$("#b-tajo").setAttribute("aria-pressed",m==="tajo");$("#b-geo").setAttribute("aria-pressed",m==="geo");$("#b-iso").setAttribute("aria-pressed",m==="bloque")}
+function encuadreBloque(){   // v10: bloque completo en vista oblicua desde el SO, sin recorte: superficie, bancos, rampa y paredes del bloque
+  detenerAnimacion();if(typeof fijarPunto==="function")fijarPunto(null);$("#cOn").checked=false;
+  for(const c of M.capas){if(["Zonacion del exoskarn","Dominios mineralizados","Leyes","Sondajes","Fallas"].includes(c.grupo)||c.clave==="excavado")fijarVisible(c.clave,false);if(c.grupo==="Litologias")fijarVisible(c.clave,true)}
+  aplicarVisual(MODO);fijarVisible("superficie",true);fijarOpacidad("superficie",MODO==="lit"?1:0.35);luces("tajo");niebla(false);
+  encuadrar([0,-80,4180],[-0.42,-0.8,0.64],esquinasCaja(4800),0.98,0.93);
+  marcarEncuadre("bloque");trasCambioCapas();
+}
+function vistaCorte(){   // v10: oblicua sobre la mitad que queda tras A–A′; se ven la cara geológica, el tajo y la traza completa
+  const G=CORTE,esq=esquinasCaja(4900).filter(q=>G.n[0]*q[0]+G.n[1]*q[1]-G.off>=0);
+  for(const P of[G.A,G.Ap])for(const z of[3500,4900])esq.push([P[0],P[1],z]);
+  const cx=esq.reduce((s,q)=>s+q[0],0)/esq.length,cy=esq.reduce((s,q)=>s+q[1],0)/esq.length;
+  encuadrar([cx,cy,4180],[-G.n[0]*0.82-G.d[0]*0.36,-G.n[1]*0.82-G.d[1]*0.36,0.7],esq,0.93,0.86)}
+function activarCorte(on){
+  detenerAnimacion();$("#cOn").checked=on;
+  if(on){if(!LITOS().some(c=>capas[c.clave].visible))for(const c of LITOS())fijarVisible(c.clave,true);
+    if(MODO==="lit"&&capas.superficie.material.opacity<0.999)fijarOpacidad("superficie",1);niebla(false);luces("tajo")}
+  $("#cOn").dispatchEvent(new Event("change"));trasCambioCapas();actualizarCorte();
+  if(on)vuelo(()=>vistaCorte(),1100);
+}
+function encuadreInicio(){if(INICIO.modo==="geo")encuadreGeologia();else if(INICIO.modo==="tajo")encuadreTajo();else encuadreBloque()}
 function encuadreTajo(){
   detenerAnimacion();if(typeof fijarPunto==="function")fijarPunto(null);$("#cOn").checked=false;
-  for(const c of M.capas){if(["Zonacion del exoskarn","Dominios mineralizados","Leyes","Sondajes","Litologias","Fallas"].includes(c.grupo)||c.clave==="excavado")fijarVisible(c.clave,false)}
-  fijarVisible("superficie",true);fijarOpacidad("superficie",1);luces("tajo");
+  for(const c of M.capas){if(["Zonacion del exoskarn","Dominios mineralizados","Leyes","Sondajes","Fallas"].includes(c.grupo)||c.clave==="excavado")fijarVisible(c.clave,false);if(c.grupo==="Litologias")fijarVisible(c.clave,true)}
+  aplicarVisual(MODO);fijarVisible("superficie",true);fijarOpacidad("superficie",MODO==="lit"?1:0.35);luces("tajo");
   // vista aérea oblicua desde el SE, perpendicular al eje NE del tajo: se ven los bancos, el fondo y la rampa
   const H=HUELLA,cx=(H.x0+H.x1)/2,cy=(H.y0+H.y1)/2,esq=[];
   for(const q of H.borde)esq.push(q);esq.push([cx,cy,H.zmin]);
@@ -810,8 +995,8 @@ function tarjetaPunto(){
   const fila=(m,col,tit,val,det)=>`<button class="filaPunto${MODO===m?" on":""}" data-lectura="${m}"><span class="sw" style="background:${col}"></span><span><b>${tit}</b> ${esc(val)}<small>${det}</small></span></button>`;
   const cu=L.cu>=0.2?L.cu.toFixed(2).replace(".",",")+" % Cu":"sin bloque (< 0,2 % Cu)";
   return`<div class="tarjetaPunto"><p class="nota" style="margin:0 0 6px">Punto x ${Math.round(PUNTO.p[0])||0} · y ${Math.round(PUNTO.p[1])||0} · z ${Math.round(PUNTO.p[2])} m (local)${PUNTO.desplazado?" · proyectado sobre el plano actual":""}</p>`+
-    fila("lit",lit.color,"Roca:",nombreCorto(lit),`Asociación documentada: ${esc((lit.ficha.mineral||"—").split(" (LS")[0])}. Geometría: ${lit.ficha.estado==="f"?"dimensiones de fuente, forma interpretada":"interpretada"}.`)+
-    fila("dom",dom?dom.color:"#777","Dominio:",dom?nombreCorto(dom):"fuera de los dominios",md?`Mena: ${md.mena.join(", ")} · ganga: ${md.ganga.join(", ")} (fuente en la ficha). Límites: interpretados.`:"Sin dominio mineralizado en este punto.")+
+    fila("lit",lit.color,"Roca:",nombreCorto(lit),`Asociación documentada para la unidad en general (no medida en este punto): ${esc((lit.ficha.mineral||"—").split(" (LS")[0])}. Geometría: ${lit.ficha.estado==="f"?"dimensiones de fuente, forma interpretada":"interpretada"}.`)+
+    fila("dom",dom?dom.color:"#777","Dominio:",dom?nombreCorto(dom):"fuera de los dominios",md?`Asociación del dominio en general, no medida en este punto. Mena: ${md.mena.join(", ")} · ganga: ${md.ganga.join(", ")} (fuente en la ficha). Límites: interpretados.`:"Sin dominio mineralizado en este punto.")+
     fila("cu",L.cu>=0.2?colorLey(L.cu):"#777","Ley:",cu,"SINTÉTICA: generada por el script, no es dato ni estimación de Antamina.")+`</div>`;
 }
 document.addEventListener("click",e=>{const b=e.target.closest(".filaPunto");if(!b)return;const m=b.dataset.lectura;
@@ -843,7 +1028,7 @@ function setModo(m){
   if(m!=="lit"&&capas.superficie.visible&&capas.superficie.material.opacity>0.4){fijarOpacidad("superficie",0.35);setModo.bajo=true}
   else if(m==="lit"&&setModo.bajo){fijarOpacidad("superficie",1);setModo.bajo=false}   // el terreno recupera su opacidad
   document.querySelectorAll(".modos button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.modo===m));
-  $("#panelCu").hidden=m!=="cu"&&!(COMP.on&&(COMP.izq==="cu"||COMP.der==="cu"));$("#etqSint").hidden=$("#panelCu").hidden;
+  $("#panelCu").hidden=m!=="cu"&&!(COMP.on&&(COMP.izq==="cu"||COMP.der==="cu"));
   trasCambioCapas();
 }
 function filtroCu(){
@@ -1079,13 +1264,18 @@ function irParada(i){
 function salirTour(silencio){if(PARADA<0)return;PARADA=-1;$("#tour").classList.remove("on");$("#b-tour").setAttribute("aria-pressed",false);resaltarFallas([]);if(!silencio)aviso("Exploración libre")}
 function actualizarEscala(){
   const c=$("#lienzo3d"),h=c.clientHeight;if(!h)return;const dist=cam.position.distanceTo(ctrl.target),ppm=h/(2*dist*Math.tan(cam.fov*Math.PI/360));
-  const L=[50,100,250,500,1000,2000].find(l=>l*ppm>=70)||2000;$("#escala i").style.width=Math.round(L*ppm)+"px";$("#escala span").textContent=`${L} m (centro de la vista)`;
+  const max=Math.min(240,c.clientWidth*0.34),L=[100,200,400,1000,2000,4000].filter(l=>l*ppm<=max).pop()||100,w=Math.round(L*ppm),km=L>=1000;
+  const f=v=>km?(v/1000).toLocaleString("es-PE",{minimumFractionDigits:v%1000?1:0,maximumFractionDigits:2}):String(v),clave=L+"|"+w;
+  if(actualizarEscala.k===clave)return;actualizarEscala.k=clave;
+  $("#escala").innerHTML=`<div class="et" style="width:${w}px"><span style="left:0">0</span>${w>=150?`<span style="left:25%">${f(L/4)}</span>`:""}<span style="left:50%">${f(L/2)}</span><span style="left:100%">${f(L)} ${km?"km":"m"}</span></div><div class="barra" style="width:${w}px"><i></i><i></i><i></i><i></i></div><small>en el centro de la vista</small>`;
 }
 function marcasA(){
-  const G=CORTE;if(!G)return;const on=$("#cOn").checked;
+  const G=CORTE;if(!G)return;const on=$("#cOn").checked,bc=$("#b-corte");if(bc&&bc.getAttribute("aria-pressed")!==String(on))bc.setAttribute("aria-pressed",on);
   for(const[id,P]of[["#mA",G.A],["#mAp",G.Ap]]){const el=$(id);
     const v=new THREE.Vector3(...toV(P[0],P[1],cotaSup(P[0],P[1])+60)).project(cam);
-    if(!on||v.z>1||Math.abs(v.x)>1.05||Math.abs(v.y)>1.05){el.style.display="none";continue}
+    if(!on||v.z>1){el.style.display="none";continue}
+    const fuera=Math.abs(v.x)>0.97||Math.abs(v.y)>0.97;el.classList.toggle("fuera",fuera);   // extremo fuera del encuadre: etiqueta pegada al borde
+    if(fuera){v.x=Math.max(-0.97,Math.min(0.97,v.x));v.y=Math.max(-0.9,Math.min(0.97,v.y))}
     const c=$("#lienzo3d");el.style.display="block";el.style.left=((v.x+1)/2*c.clientWidth)+"px";el.style.top=((1-v.y)/2*c.clientHeight)+"px"}
 }
 
@@ -1162,21 +1352,24 @@ function trasCambioCapas(){
   if(CORTE){dibujarPlanta($("#cPla"),false);dibujarPlanta($("#cMini"),true)}
   document.querySelectorAll("#capas input[data-g]").forEach(i=>{const cs=M.capas.filter(c=>c.grupo===i.dataset.g);i.checked=cs.every(c=>capas[c.clave].visible);i.indeterminate=!i.checked&&cs.some(c=>capas[c.clave].visible)});
   colorearSondajes();leyenda3D();pintarTapa();dibujarSeccion();
+  const qf=$("#qFal");if(qf)qf.checked=["falla_cabalgamiento","falla_valle"].some(k=>capas[k].visible);
+  const ot=$("#opTer");if(ot){const v=capas.superficie.material.opacity;ot.value=v;$("#oTer").textContent=Math.round(v*100)+" %"}
+  $("#etqSint").hidden=!(capas.leyes.visible||(COMP.on&&(COMP.izq==="cu"||COMP.der==="cu")));
 }
 function nombreCorto(c){return c.nombre.replace(" (porfido de cuarzo-monzonita)","").replace("Calizas Fm. ","Fm. ").replace(" (calizas margosas)","").replace("Exoskarn de ","").replace(" (proximal)","").replace(" (distal)","").replace("SINTETICOS","sintéticos").replace("SINTETICA","sintética")}
-function leyenda3D(){
-  const it=(col,txt,etq)=>`<div class="it"><span class="sw" style="background:${col}"></span>${esc(txt)}${etq?` <span class="etq ${etq[0]}">${etq[1]}</span>`:""}</div>`;
+function leyenda3D(){   // v10: filas compactas (visibilidad, color, nombre) según la lectura activa
+  const fila=(k,col,txt,etq)=>`<label class="fila"><input type="checkbox" data-k="${k}"${capas[k]&&capas[k].visible?" checked":""} aria-label="Mostrar ${esc(txt)}"><span class="sw" style="background:${col}"></span><span class="n">${esc(txt)}</span>${etq?`<span class="etq ${etq[0]}">${etq[1]}</span>`:"<span></span>"}</label>`;
+  const sub=(col,txt)=>`<div class="fila sub"><span></span><span class="sw" style="background:${col}"></span><span class="n">${esc(txt)}</span><span></span></div>`;
   let h="";const m=typeof MODO!=="undefined"?MODO:"lit",cara=$("#cOn").checked;
-  const conRoca=LITOS().some(c=>capas[c.clave].visible);
-  if(m==="lit"&&conRoca){h+=`<h4>Litologías${cara?" · cara del corte en colores planos":""}</h4>`+LITOS().map(c=>it(c.color,nombreCorto(c),c.ficha.estado==="f"?null:["i","geometría interpretada"])).join("");
-    const zs=M.capas.filter(c=>c.grupo==="Zonacion del exoskarn"&&capas[c.clave].visible);if(zs.length)h+=`<h4>Zonación del exoskarn</h4>`+zs.map(c=>it(c.color,nombreCorto(c),["i","interpretado"])).join("")}
-  if(m==="dom")h+=`<h4>Dominios mineralizados · forma interpretativa</h4>`+DOMS().map(c=>it(c.color,nombreCorto(c))).join("")+`<div class="it" style="color:var(--muted)">Roca hospedante e intrusivo atenuados como contexto. Clic en un dominio para aislarlo.</div>`;
-  if(m==="cu")h+=`<h4>Ley de Cu sintética (% Cu)</h4><div class="it" style="color:var(--muted)">Bloques de 30 m generados por el script: no son datos ni estimaciones de Antamina.</div>`;
+  if(m==="lit"){h+=`<h4>Litologías${cara?" · cara del corte":""}</h4>`+LITOS().map(c=>fila(c.clave,c.color,nombreCorto(c),c.ficha.estado==="f"?null:["i","interpretada"])).join("");
+    const zs=M.capas.filter(c=>c.grupo==="Zonacion del exoskarn"&&capas[c.clave].visible);if(zs.length)h+=`<h4>Zonación del exoskarn</h4>`+zs.map(c=>fila(c.clave,c.color,nombreCorto(c),["i","interpretada"])).join("")}
+  if(m==="dom")h+=`<h4>Dominios mineralizados</h4>`+DOMS().map(c=>fila(c.clave,c.color,nombreCorto(c),["i","forma interpretativa"])).join("")+`<p class="nota" style="margin:6px 0 0">Roca y terreno atenuados como contexto. Clic en un dominio para aislarlo.</p>`;
+  if(m==="cu")h+=`<h4>Ley de Cu sintética</h4>`+fila("leyes",`linear-gradient(90deg,${LEYC.map(l=>l[1]).join(",")})`,"Bloques de 30 m (% Cu)",["s","sintético"])+`<p class="nota" style="margin:6px 0 0">Generados por el script: no son datos ni estimaciones de Antamina.</p>`;
   const fs=M.capas.filter(c=>c.grupo==="Fallas"&&capas[c.clave].visible);
-  if(fs.length)h+=`<h4>Fallas</h4>`+fs.map(c=>it(c.color,nombreCorto(c),c.ficha.estado==="h"?["h","hipotética"]:["i","interpretada"])).join("");
-  if(capas.sondajes.visible)h+=`<h4>Sondajes</h4>`+it("#777","24 sondajes sintéticos",["s","sintético"]);
-  if(capas.superficie.visible)h+=`<h4>Superficie</h4>`+it("#b0966b","Rampa: camino afirmado (35 m al 10 %)")+it("#8d8579","Caras de banco y bermas (15 m / 10 m)")+it("#8a8a6c","Terreno natural");
-  h+=`<div class="pie">Coordenadas locales en metros. Relieve, tajo y texturas son ilustrativos: procedurales, sin topografía ni imágenes georreferenciadas.</div>`;
+  if(fs.length)h+=`<h4>Fallas</h4>`+fs.map(c=>fila(c.clave,c.color,nombreCorto(c),c.ficha.estado==="h"?["h","hipotética"]:["i","interpretada"])).join("");
+  if(capas.sondajes.visible)h+=`<h4>Sondajes</h4>`+fila("sondajes","#777","24 sondajes",["s","sintético"]);
+  h+=`<h4>Superficie</h4>`+fila("superficie","#8f887e","Terreno y tajo",["s","ilustrativo"]);
+  if(capas.superficie.visible)h+=sub("#b1a995","Rampa: camino afirmado, 35 m al 10 %")+sub("#7f7970","Caras de banco 15 m y bermas 10 m")+sub("#8a8372","Terreno natural");
   $("#leyCont").innerHTML=h;
 }
 
@@ -1300,7 +1493,7 @@ function pintarTapa(){
   const G=CORTE,principal=modoTapa();TAPAS[principal]=texturaTapa(principal,true);
   if(COMP.on)for(const m of[COMP.izq,COMP.der])if(!TAPAS[m])TAPAS[m]=texturaTapa(m,false);
   const g=new THREE.PlaneGeometry((G.nt)*RES,(G.nz)*RES);
-  planoSec=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:TAPAS[principal],transparent:true,side:THREE.DoubleSide,alphaTest:0.05}));
+  planoSec=new THREE.Mesh(g,granoRoca(new THREE.MeshBasicMaterial({map:TAPAS[principal],transparent:true,side:THREE.DoubleSide,alphaTest:0.05}),0.12,false));
   const mid=[G.A[0]+G.d[0]*(G.nt-1)*RES/2,G.A[1]+G.d[1]*(G.nt-1)*RES/2];
   planoSec.position.set(...toV(mid[0],mid[1],(ZMIN+ZMAX)/2));planoSec.rotation.y=(90-G.az)*Math.PI/180;
   planoSec.translateZ(0.6);planoSec.name="cara_corte";escena.add(planoSec);
@@ -1518,7 +1711,12 @@ function prepararControles(){
   $("#b-revelar").onclick=revelarSubsuelo;$("#b-pausa").onclick=pausarAnimacion;$("#b-rampa").onclick=()=>resaltarRampa(!rampaVis);
   $("#b-tour").onclick=()=>ESC>=0?cerrarExpo():abrirExpo(0);$("#expoAnt").onclick=()=>abrirExpo(ESC-1);$("#expoSig").onclick=()=>abrirExpo(ESC+1);$("#expoLibre").onclick=cerrarExpo;$("#tourAnt").onclick=()=>irParada(PARADA-1);$("#tourSig").onclick=()=>irParada(PARADA+1);$("#tourSal").onclick=salirTour;
   $("#cOn").addEventListener("change",()=>marcarEncuadre(""));
-  $("#b-iso").onclick=vistaIso;$("#b-frente").onclick=vistaFrente;$("#b-pla").onclick=()=>fijarCam([0,5600,1],[0,0,0]);
+  $("#b-iso").onclick=()=>vuelo(()=>encuadreBloque(),1100);
+  $("#b-corte").onclick=()=>activarCorte(!$("#cOn").checked);
+  $("#leyCont").addEventListener("change",e=>{const k=e.target.dataset&&e.target.dataset.k;if(!k)return;fijarVisible(k,e.target.checked);trasCambioCapas()});
+  $("#opTer").addEventListener("input",()=>{const v=+$("#opTer").value;fijarOpacidad("superficie",v);$("#oTer").textContent=Math.round(v*100)+" %"});
+  $("#b-detalle").onclick=()=>{const d=$("#secCapas"),on=!d.classList.contains("detalle");d.classList.toggle("detalle",on);d.open=on||d.open;$("#b-detalle").setAttribute("aria-pressed",on);if(document.body.classList.contains("sin-panel"))$("#b-panel").click();if(on)d.scrollIntoView({block:"nearest",behavior:"smooth"})};
+  document.body.dataset.vista="v3d";$("#b-frente").onclick=vistaFrente;$("#b-pla").onclick=()=>fijarCam([0,5600,1],[0,0,0]);
   $("#b-inicio").onclick=()=>{aplicarInicio();$("#t-3d").click();aviso("Vista inicial restablecida")};
   $("#b-png").onclick=exportarPNG;$("#b-glb").onclick=exportarGLB;
   $("#cSec").addEventListener("click",e=>{
@@ -1530,11 +1728,10 @@ function aplicarInicio(){
   if(COMP.on)comparar(false);ANTERIOR=null;$("#b-volver").hidden=true;$("#qFal").checked=false;$("#qSon").checked=false;
   $("#cOn").checked=INICIO.corte.on;$("#cAz").value=INICIO.corte.az;$("#cOff").value=INICIO.corte.off;
   for(const c of M.capas){fijarVisible(c.clave,c.visible&&!INICIO.ocultas.includes(c.clave));if(capas[c.clave].material&&c.tipo!=="lineas"&&c.tipo!=="puntos")fijarOpacidad(c.clave,INICIO.opacidad[c.clave]??1)}
-  if(innerWidth<=820)$("#leyPanel").open=false;
   ENCUADRE_PENDIENTE=!tamanoValido();
   salirTour(true);if(ESC>=0)cerrarExpo();resaltarRampa(false);resaltarFallas([]);
   seleccionar(null);MODO="lit";AISLADO=null;aplicarVisual("lit");document.querySelectorAll(".modos button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.modo==="lit"));$("#panelCu").hidden=true;$("#etqSint").hidden=true;
-  actualizarCorte();if(INICIO.modo==="geo")encuadreGeologia();else encuadreTajo();leyenda3D();
+  actualizarCorte();encuadreInicio();leyenda3D();
 }
 
 // ---------------------------------------------------------------- exportación
